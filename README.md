@@ -1,5 +1,5 @@
 # Composer Classifier
-Mark Evers's Capstone Project
+Mark Evers
 
 
 
