@@ -5,9 +5,9 @@
 
 import os
 import shutil
+import string
 
-
-MIN_WORKS = 50
+from src.globals import *
 
 
 
@@ -36,10 +36,11 @@ def move_to_folders(source_folder, dest_folder, split_char="_", skip_scarce=Fals
 
     for composer, files in composers.items():
 
-        if skip_scarce and len(files) < MIN_WORKS:
+        if skip_scarce and len(files) < MINIMUM_WORKS:
             continue
 
         composer_dir = dest_folder + composer + "/"
+        composer_dir = composer_dir.capitalize()
         if not os.path.exists(composer_dir):
             os.makedirs(composer_dir)
 
@@ -50,8 +51,43 @@ def move_to_folders(source_folder, dest_folder, split_char="_", skip_scarce=Fals
     return composers
 
 
+
+def capitalize_folders(dir):
+    """Capitalizes the first letter of all folders in dir."""
+
+    if not dir.endswith("/"):
+        dir += "/"
+
+    for file in os.listdir(dir):
+
+        path = dir + file
+
+        if not os.path.isdir(path):
+            continue
+
+        if file[0] in string.ascii_uppercase:
+            continue
+
+        new_name = dir + file.capitalize()
+
+        if not os.path.exists(new_name):
+            # print("Rename {} -> {}".format(dir + file, new_name))
+            os.rename(dir + file, new_name)
+        else:
+            print("Directory already exists:", new_name)
+
+
+
+def remove_format_0(dir="midi/"):
+
+    for root, dirs, files in os.walk(dir):
+
+        for file in files:
+            if file.find("_format0") > -1:
+                orig = file.replace("_format0", "")
+                if not os.path.exists(os.path.join(root, orig)):
+                    print(file)
+
+
 if __name__ == "__main__":
-
-    folder = "/home/mark/Documents/midi/130000_Pop_Rock_Classical_Videogame_EDM_MIDI_Archive[6_19_15]/Classical_Violin_theviolinsite.com_MIDIRip"
-
-    composers = move_to_folders(folder, folder, "-")
+    remove_format_0()

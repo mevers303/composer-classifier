@@ -4,6 +4,12 @@
 # Functions for processing MIDI files
 
 import mido
+import os
+import sys
+
+
+
+from src.globals import *
 
 
 
@@ -17,6 +23,32 @@ def dump_msgs(track):
     for i, msg in enumerate(track):
         print(str(i).rjust(4), ": ", msg, sep="")
 
+
+
+def get_all_files(dir = "midi/"):
+
+    midi_files = []
+
+    for composer in os.listdir(dir):
+
+        composer_files = []
+
+        for root, dirs, files in os.walk(os.path.join(dir, composer)):
+
+            for file in files:
+                composer_files.append(os.path.join(root, file))
+
+        composer_works = len(composer_files)
+
+        if composer_works < MINIMUM_WORKS:
+            print("Not enough works for {}, ({})".format(composer, composer_works))
+            continue
+
+        midi_files.extend(composer_files)
+        print("Added {} ({})".format(composer, composer_works))
+
+
+    return midi_files
 
 
 def track_to_list(track):
@@ -78,4 +110,4 @@ def track_to_list(track):
 
 if __name__ == "__main__":
 
-    mid = mido.MidiFile("midi/Bach/piano/Piano version of Bachs two part inventions No.4.mid")
+    files = get_all_files()
