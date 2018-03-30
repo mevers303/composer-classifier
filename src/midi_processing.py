@@ -234,5 +234,10 @@ if __name__ == "__main__":
     archive.get_all_filenames()
     midis, df = archive.build_mido_and_meta()
 
+    print("Saving meta csv...")
     df.to_csv("midi/100_per_composer.csv")
-    pickle.dump(midis, "midi/100_per_composer.pkl")
+    print("Meta csv saved!")
+    print("Saving pickle file...")
+    with open("midi/100_per_composer.pkl", "wb"):
+        pickle.dump(midis, "midi/100_per_composer.pkl")
+    print("Pickle file saved!")
