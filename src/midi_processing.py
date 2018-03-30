@@ -41,7 +41,7 @@ def get_all_files(dir = "midi/"):
         composer_works = len(composer_files)
 
         if composer_works < MINIMUM_WORKS:
-            print("Not enough works for {}, ({})".format(composer, composer_works))
+            # print("Not enough works for {}, ({})".format(composer, composer_works))
             continue
 
         midi_files.extend(composer_files)

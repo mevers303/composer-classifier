@@ -85,8 +85,9 @@ def remove_format_0(dir="midi/"):
         for file in files:
             if file.find("_format0") > -1:
                 orig = file.replace("_format0", "")
-                if not os.path.exists(os.path.join(root, orig)):
-                    print(file)
+                if os.path.exists(os.path.join(root, orig)):
+                    print("Removing", os.path.join(root, file))
+                    os.remove(os.path.join(root, file))
 
 
 if __name__ == "__main__":
