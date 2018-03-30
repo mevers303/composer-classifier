@@ -8,8 +8,8 @@ import os
 import sys
 import pandas as pd
 import random
-
-
+import threading
+import time
 
 from src.globals import *
 
@@ -19,73 +19,118 @@ def dump_tracks(midi_file):
     for i, track in enumerate(midi_file.tracks):
         print(str(i).rjust(2), ": ", track, sep="")
 
-
-
 def dump_msgs(track):
     for i, msg in enumerate(track):
         print(str(i).rjust(4), ": ", msg, sep="")
 
 
 
-def get_all_filenames(dir = "midi/"):
-    """Returns a list of files in <dir> and their associated label in y.  Files must be in <dir>/<composer>/*.mid"""
+class MidiArchive():
 
-    midi_files = []
-    y = []
-    composers = set()
+    def __init__(self, base_dir="midi/"):
 
-    for composer in os.listdir(dir):
+        self.base_dir = base_dir
+        self.composers = set()
 
-        composer_files = []
+        self.midi_filenames = []
+        self.midi_filenames_labels = []
+        self.midi_filenames_total = 0
+        self.midi_filenames_invalid = []
+        self.midi_objects = []
+        self.midi_objects_labels = []
+        self.midi_filenames_loaded = 0
+        self.meta_df = pd.DataFrame(index=["filename"],
+                          columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd",
+                                   "first_note", "first_note_time"])
 
-        for root, dirs, files in os.walk(os.path.join(dir, composer)):
-
-            for file in files:
-
-                full_path = os.path.join(root, file)
-                if not (file.lower().endswith(".mid") or file.lower().endswith(".midi")):
-                    print("Unknown file:", full_path)
-                    continue
-
-                composer_files.append(full_path)
-
-
-        composer_works = len(composer_files)
-
-        if composer_works < MINIMUM_WORKS:
-            # print("Not enough works for {}, ({})".format(composer, composer_works))
-            continue
-
-        if composer_works > MAXIMUM_WORKS:
-            composer_files = random.sample(composer_files, MAXIMUM_WORKS)
-
-        midi_files.extend(composer_files)
-        y.extend([composer] * composer_works)
-        composers.add(composer)
-        # print("Added {} ({})".format(composer, composer_works))
-
-
-    print("Found", len(midi_files), "files from", len(composers), "composers!")
-    return midi_files, y
+        self.threads = []
+        self.thread_lock = threading.Lock()
 
 
 
-def build_mido_and_meta(filenames, y):
+    def get_all_filenames(self):
+        """Returns a list of files in <dir> and their associated label in y.  Files must be in <dir>/<composer>/*.mid"""
+
+        self.midi_filenames = []
+        self.midi_filenames_labels = []
+        self.composers = set()
 
 
-    df = pd.DataFrame(index=["filename"], columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd", "first_note", "first_note_time"])
-    midi_objects = []
-
-    n = len(filenames)
-    i = 0
+        for composer in os.listdir(self.base_dir):
 
 
-    for file, composer in zip(filenames, y):
-        i += 1
+            composer_files = []
+            for root, dirs, files in os.walk(os.path.join(self.base_dir, composer)):
+
+                for file in files:
+
+                    full_path = os.path.join(root, file)
+                    if not (file.lower().endswith(".mid") or file.lower().endswith(".midi")):
+                        print("Unknown file:", full_path)
+                        continue
+
+                    composer_files.append(full_path)
+
+
+            composer_works = len(composer_files)
+            if composer_works < MINIMUM_WORKS:
+                # print("Not enough works for {}, ({})".format(composer, composer_works))
+                continue
+            if composer_works > MAXIMUM_WORKS:
+                composer_files = random.sample(composer_files, MAXIMUM_WORKS)
+
+
+            self.midi_filenames.extend(composer_files)
+            self.midi_filenames_labels.extend([composer] * composer_works)
+            self.composers.add(composer)
+            # print("Added {} ({})".format(composer, composer_works))
+
+
+        self.midi_filenames_total = len(self.midi_filenames)
+        print("Found", self.midi_filenames_total, "files from", len(self.composers), "composers!")
+
+        return self.midi_filenames, self.midi_filenames_labels
+
+
+
+    def build_mido_and_meta(self):
+
+        chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
+        chunkified_filenames = [self.midi_filenames[i:i + chunk_size] for i in
+                                range(0, len(self.midi_filenames), chunk_size)]
+        chunkified_labels = [self.midi_filenames_labels[i:i + chunk_size] for i in
+                             range(0, len(self.midi_filenames_labels), chunk_size)]
+
+        print("Loading midi files with", len(chunkified_filenames), "threads...")
+        for filenames, labels in zip(chunkified_filenames, chunkified_labels):
+            thread = threading.Thread(target=MidiArchive.build_mido_and_meta_chunk, args=(self, filenames, labels))
+            thread.start()
+            self.threads.append(thread)
+
+        for thread in self.threads:
+            thread.join()
+
+
+        return self.midi_objects, self.meta_df
+
+
+
+    def build_mido_and_meta_chunk(self, filenames, labels):
+
+        for file, composer in zip(filenames, labels):
+            self.parse_midi_file(file, composer)
+
+        with self.thread_lock:
+            print("\nThread finished!")
+
+
+
+    def parse_midi_file(self, file, composer):
+
+        key_sig = time_n = time_d = time_32nd = first_note = first_note_time = None
 
         try:
             mid = mido.MidiFile(file)
-            key_sig = time_n = time_d = time_32nd = first_note = first_note_time = None
 
             for msg in mid:
 
@@ -106,18 +151,22 @@ def build_mido_and_meta(filenames, y):
                         first_note = msg.note
                         first_note_time = msg.time
 
-            df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, first_note, first_note_time]
-            midi_objects.append(mid)
+            with self.thread_lock:
+                self.meta_df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd,
+                                          first_note, first_note_time]
+                self.midi_objects.append(mid)
+                self.midi_objects_labels.append(composer)
+                self.midi_filenames_loaded += 1
+                progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
 
 
         except:
-            print("\nERROR -> Skipping invalid file:", file)
-            continue
+            with self.thread_lock:
+                print("\nERROR -> Skipping invalid file:", file)
+                self.midi_filenames_invalid.append(file)
+                self.midi_filenames_loaded += 1
+                progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
 
-        progress_bar(i, n)
-
-
-    return midi_objects, df
 
 
 
@@ -180,5 +229,6 @@ def track_to_list(track):
 
 if __name__ == "__main__":
 
-    files, y = get_all_filenames()
-    midi_files, df = build_mido_and_meta(files, y)
+    archive = MidiArchive("/media/mark/Windows/Users/mever/midi")
+    archive.get_all_filenames()
+    midis, df = archive.build_mido_and_meta()
