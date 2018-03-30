@@ -6,6 +6,8 @@
 import mido
 import os
 import sys
+import pandas as pd
+import random
 
 
 
@@ -25,9 +27,12 @@ def dump_msgs(track):
 
 
 
-def get_all_files(dir = "midi/"):
+def get_all_filenames(dir = "midi/"):
+    """Returns a list of files in <dir> and their associated label in y.  Files must be in <dir>/<composer>/*.mid"""
 
     midi_files = []
+    y = []
+    composers = set()
 
     for composer in os.listdir(dir):
 
@@ -36,7 +41,14 @@ def get_all_files(dir = "midi/"):
         for root, dirs, files in os.walk(os.path.join(dir, composer)):
 
             for file in files:
-                composer_files.append(os.path.join(root, file))
+
+                full_path = os.path.join(root, file)
+                if not (file.lower().endswith(".mid") or file.lower().endswith(".midi")):
+                    print("Unknown file:", full_path)
+                    continue
+
+                composer_files.append(full_path)
+
 
         composer_works = len(composer_files)
 
@@ -44,11 +56,69 @@ def get_all_files(dir = "midi/"):
             # print("Not enough works for {}, ({})".format(composer, composer_works))
             continue
 
+        if composer_works > MAXIMUM_WORKS:
+            composer_files = random.sample(composer_files, MAXIMUM_WORKS)
+
         midi_files.extend(composer_files)
-        print("Added {} ({})".format(composer, composer_works))
+        y.extend([composer] * composer_works)
+        composers.add(composer)
+        # print("Added {} ({})".format(composer, composer_works))
 
 
-    return midi_files
+    print("Found", len(midi_files), "files from", len(composers), "composers!")
+    return midi_files, y
+
+
+
+def build_mido_and_meta(filenames, y):
+
+
+    df = pd.DataFrame(index=["filename"], columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd", "first_note", "first_note_time"])
+    midi_objects = []
+
+    n = len(filenames)
+    i = 0
+
+
+    for file, composer in zip(filenames, y):
+        i += 1
+
+        try:
+            mid = mido.MidiFile(file)
+            key_sig = time_n = time_d = time_32nd = first_note = first_note_time = None
+
+            for msg in mid:
+
+                # break if we already know the key signature, time signature, and first note
+                if key_sig and time_n and first_note:
+                    break
+
+                if msg.type == "key_signature":
+                    if not key_sig:
+                        key_sig = msg.key
+                elif msg.type == "time_signature":
+                    if not time_n:
+                        time_n = msg.numerator
+                        time_d = msg.denominator
+                        time_32nd = msg.notated_32nd_notes_per_beat
+                elif msg.type == "note_on":
+                    if not first_note:
+                        first_note = msg.note
+                        first_note_time = msg.time
+
+            df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, first_note, first_note_time]
+            midi_objects.append(mid)
+
+
+        except:
+            print("\nERROR -> Skipping invalid file:", file)
+            continue
+
+        progress_bar(i, n)
+
+
+    return midi_objects, df
+
 
 
 def track_to_list(track):
@@ -110,4 +180,5 @@ def track_to_list(track):
 
 if __name__ == "__main__":
 
-    files = get_all_files()
+    files, y = get_all_filenames()
+    midi_files, df = build_mido_and_meta(files, y)
