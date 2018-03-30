@@ -5,8 +5,8 @@
 
 
 MINIMUM_WORKS = 100
-MAXIMUM_WORKS = 250
-NUM_THREADS = 4
+MAXIMUM_WORKS = 100
+NUM_THREADS = 2
 
 
 
@@ -24,7 +24,7 @@ def progress_bar(done, total, resolution = 1):
     # if it's some multiple of resolution
     if (not i % resolution) or (i == 100):
         sys.stdout.write('\r')
-        sys.stdout.write("[{}] {}% ({}/{})".format(('=' * int(i / 2)).ljust(50), i, done, total))
+        sys.stdout.write("[{}] {}% ({}/{})".format(('=' * int(i / 2) + '>').ljust(50), str(i).rjust(4), done, total))
         sys.stdout.flush()
 
     if i == 100:

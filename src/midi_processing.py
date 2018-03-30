@@ -10,6 +10,7 @@ import pandas as pd
 import random
 import threading
 import time
+import pickle
 
 from src.globals import *
 
@@ -39,9 +40,8 @@ class MidiArchive():
         self.midi_objects = []
         self.midi_objects_labels = []
         self.midi_filenames_loaded = 0
-        self.meta_df = pd.DataFrame(index=["filename"],
-                          columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd",
-                                   "first_note", "first_note_time"])
+        self.meta_df = pd.DataFrame(columns=["composer", "type", "ticks_per_beat", "key", "time_n",
+                                             "time_d", "time_32nd", "first_note", "first_note_time"])
 
         self.threads = []
         self.thread_lock = threading.Lock()
@@ -78,6 +78,7 @@ class MidiArchive():
                 continue
             if composer_works > MAXIMUM_WORKS:
                 composer_files = random.sample(composer_files, MAXIMUM_WORKS)
+                composer_works = len(composer_files)
 
 
             self.midi_filenames.extend(composer_files)
@@ -229,6 +230,9 @@ def track_to_list(track):
 
 if __name__ == "__main__":
 
-    archive = MidiArchive("/media/mark/Windows/Users/mever/midi")
+    archive = MidiArchive()
     archive.get_all_filenames()
     midis, df = archive.build_mido_and_meta()
+
+    df.to_csv("midi/100_per_composer.csv")
+    pickle.dump(midis, "midi/100_per_composer.pkl")
