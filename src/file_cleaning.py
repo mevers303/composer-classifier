@@ -78,7 +78,7 @@ def capitalize_folders(dir):
 
 
 
-def remove_format_0(dir="midi/"):
+def remove_format_0(dir="raw_midi/"):
 
     for root, dirs, files in os.walk(dir):
 

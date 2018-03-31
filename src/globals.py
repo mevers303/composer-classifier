@@ -18,13 +18,13 @@ def progress_bar(done, total, resolution = 1):
     global PROGRESS_BAR_LAST_I
     # percentage done
     i = int(done / total * 100)
-    if i == PROGRESS_BAR_LAST_I:
-        return
+    # if i == PROGRESS_BAR_LAST_I:
+    #     return
 
     # if it's some multiple of resolution
     if (not i % resolution) or (i == 100):
         sys.stdout.write('\r')
-        sys.stdout.write("[{}] {}% ({}/{})".format(('=' * int(i / 2) + '>').ljust(50), str(i).rjust(4), done, total))
+        sys.stdout.write("[{}]{}%".format(("-" * int(i / 2) + (">" if i < 100 else "")).ljust(50), str(i).rjust(4)) + "({}/{})".format(done, total).rjust(13))
         sys.stdout.flush()
 
     if i == 100:

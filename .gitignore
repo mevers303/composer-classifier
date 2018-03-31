@@ -1,3 +1,3 @@
 .idea/*
-midi/*
+raw_midi/*
 src/__pycache__/*

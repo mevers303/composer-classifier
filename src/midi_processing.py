@@ -11,6 +11,7 @@ import random
 import threading
 import time
 import pickle
+import json
 
 from src.globals import *
 
@@ -28,7 +29,7 @@ def dump_msgs(track):
 
 class MidiArchive():
 
-    def __init__(self, base_dir="midi/"):
+    def __init__(self, base_dir="raw_midi/"):
 
         self.base_dir = base_dir
         self.composers = set()
@@ -40,11 +41,14 @@ class MidiArchive():
         self.midi_objects = []
         self.midi_objects_labels = []
         self.midi_filenames_loaded = 0
-        self.meta_df = pd.DataFrame(columns=["composer", "type", "ticks_per_beat", "key", "time_n",
-                                             "time_d", "time_32nd", "first_note", "first_note_time"])
+        self.meta_df = pd.DataFrame(columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd", "first_note", "first_note_time", "has_note_off"])
+        self.meta_df.index.name = "filename"
 
         self.threads = []
         self.thread_lock = threading.Lock()
+
+        self.key_sigs = set()
+        self.time_sigs = set()
 
 
 
@@ -94,7 +98,7 @@ class MidiArchive():
 
 
 
-    def build_mido_and_meta(self):
+    def build_mido_and_meta(self, only_build_meta=False):
 
         chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
         chunkified_filenames = [self.midi_filenames[i:i + chunk_size] for i in
@@ -104,31 +108,33 @@ class MidiArchive():
 
         print("Loading midi files with", len(chunkified_filenames), "threads...")
         for filenames, labels in zip(chunkified_filenames, chunkified_labels):
-            thread = threading.Thread(target=MidiArchive.build_mido_and_meta_chunk, args=(self, filenames, labels))
+            thread = threading.Thread(target=MidiArchive.build_mido_and_meta_chunk, args=(self, filenames, labels, only_build_meta))
             thread.start()
             self.threads.append(thread)
 
         for thread in self.threads:
             thread.join()
+        self.threads = []
 
 
         return self.midi_objects, self.meta_df
 
 
 
-    def build_mido_and_meta_chunk(self, filenames, labels):
+    def build_mido_and_meta_chunk(self, filenames, labels, only_build_meta=False):
 
         for file, composer in zip(filenames, labels):
-            self.parse_midi_file(file, composer)
+            self.parse_midi_file(file, composer, only_build_meta)
 
-        with self.thread_lock:
-            print("\nThread finished!")
+        # with self.thread_lock:
+        #     print("\nThread finished!")
 
 
 
-    def parse_midi_file(self, file, composer):
+    def parse_midi_file(self, file, composer, only_build_meta=False):
 
         key_sig = time_n = time_d = time_32nd = first_note = first_note_time = None
+        has_note_off = False
 
         try:
             mid = mido.MidiFile(file)
@@ -136,13 +142,15 @@ class MidiArchive():
             for msg in mid:
 
                 # break if we already know the key signature, time signature, and first note
-                if key_sig and time_n and first_note:
+                if key_sig and time_n and first_note and has_note_off:
                     break
 
                 if msg.type == "key_signature":
+                    self.key_sigs.add(msg.key)
                     if not key_sig:
                         key_sig = msg.key
                 elif msg.type == "time_signature":
+                    self.time_sigs.add("{}/{}/{}".format(msg.numerator, msg.denominator, msg.notated_32nd_notes_per_beat))
                     if not time_n:
                         time_n = msg.numerator
                         time_d = msg.denominator
@@ -151,23 +159,28 @@ class MidiArchive():
                     if not first_note:
                         first_note = msg.note
                         first_note_time = msg.time
+                elif msg.type == "note_off":
+                    if not has_note_off:
+                        has_note_off = True
+
+            mid.first_key_sig = key_sig
+            mid.first_time_sig = (time_n, time_d, time_32nd)
 
             with self.thread_lock:
-                self.meta_df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd,
-                                          first_note, first_note_time]
-                self.midi_objects.append(mid)
-                self.midi_objects_labels.append(composer)
+                self.meta_df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, first_note, first_note_time, has_note_off]
+                if not only_build_meta:
+                    self.midi_objects.append(mid)
+                    self.midi_objects_labels.append(composer)
                 self.midi_filenames_loaded += 1
                 progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
 
 
         except:
             with self.thread_lock:
-                print("\nERROR -> Skipping invalid file:", file)
+                # print("\nERROR -> Skipping invalid file:", file)
                 self.midi_filenames_invalid.append(file)
                 self.midi_filenames_loaded += 1
                 progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
-
 
 
 
@@ -228,16 +241,60 @@ def track_to_list(track):
 
 
 
-if __name__ == "__main__":
+def transpose_to_c(mid):
 
-    archive = MidiArchive()
+    if mid.first_key_sig == "C":
+        return mid
+
+    if mid.first_key_sig == "D":
+        transpose = -2
+    elif mid.first_key_sig == "E":
+        transpose = -4
+    if mid.first_key_sig == "F":
+        transpose = -5
+    elif mid.first_key_sig == "G":
+        transpose = 5
+    if mid.first_key_sig == "A":
+        transpose = 3
+    elif mid.first_key_sig == "B":
+        transpose = 1
+
+
+    for track in mid.tracks:
+        pass
+
+
+
+
+
+
+def build_meta():
+
+    global MAXIMUM_WORKS
+    global MINIMUM_WORKS
+    MAXIMUM_WORKS = 2000
+    MINIMUM_WORKS = 1
+
+    archive = MidiArchive("raw_midi/")
     archive.get_all_filenames()
-    midis, df = archive.build_mido_and_meta()
+    midis, df = archive.build_mido_and_meta(only_build_meta=True)
+
+    for file in archive.midi_filenames_invalid:
+        archive.midi_filenames.remove(file)
+        os.remove(file)
+
 
     print("Saving meta csv...")
-    df.to_csv("midi/100_per_composer.csv")
-    print("Meta csv saved!")
-    print("Saving pickle file...")
-    with open("midi/100_per_composer.pkl", "wb"):
-        pickle.dump(midis, "midi/100_per_composer.pkl")
-    print("Pickle file saved!")
+    df.to_csv("raw_midi/all.csv")
+    print("Meta CSV file saved!")
+
+    info = {"key_sigs": archive.key_sigs, "time_sigs": archive.time_sigs}
+    with open("raw_midi/info.json", "w") as f:
+        json.dump(info, f)
+    print("JSON file saved!")
+
+
+
+if __name__ == "__main__":
+    build_meta()
+    pass
