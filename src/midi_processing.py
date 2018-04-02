@@ -13,6 +13,7 @@ import time
 import pickle
 import json
 import numpy as np
+from collections import Counter
 
 from src.globals import *
 
@@ -291,9 +292,14 @@ class MidiArchiveMeta():
 
 class MidiVector():
 
-    def __init__(self, meta_df):
+    def __init__(self, filename, meta_df):
 
+        self.filename = filename
         self.meta_df = meta_df
+
+        self.mid = mido.MidiFile(self.filename)
+        self.key_sig_transpose = self.get_keysig_transpose_interval()
+
 
 
     def get_key_sig(self, note_dist):
@@ -317,17 +323,18 @@ class MidiVector():
             # if this one is better than the last, save it
             if set_dif_len < best_match_set_dif_len:
                 best_match = i
-                best_match_set_dif = set_dif_len
+                best_match_set_dif_len = set_dif_len
 
                 # if there are 0 uncommon notes, it is our match!
-                if not best_match_set_dif:
+                if not best_match_set_dif_len:
                     break
 
 
         return best_match
 
 
-    def get_keysig_transpose_interval(self, filename):
+
+    def get_keysig_transpose_interval(self):
         """
         Gets the transpose interval for a filename from the meta dataframe.
         :param filename: Path to a midi file
@@ -336,7 +343,7 @@ class MidiVector():
 
         transpose_interval = 0
 
-        row = self.meta_df.loc[filename]
+        row = self.meta_df.loc[self.filename]
 
         # get the key signature
         note_dist = row[music_notes].values.astype(int)
@@ -352,7 +359,8 @@ class MidiVector():
         return transpose_interval
 
 
-    def tracks_to_list(self, mid):
+
+    def tracks_to_list(self):
         """
         Converts a mido MidiFile into a list of dictionaries.
         :param mid: A mido.MidiFile object
@@ -360,8 +368,9 @@ class MidiVector():
                  {start_time: [tuple(note, duration, velocity), ...]}
         """
 
-        ticks_transformer = TICKS_PER_BEAT / mid.ticks_per_beat  # coefficient to convert msg.time
+        ticks_transformer = TICKS_PER_BEAT / self.mid.ticks_per_beat  # coefficient to convert msg.time
         result = []
+
 
         def close_note(note):
             """
@@ -373,25 +382,34 @@ class MidiVector():
             # if it's already playing, take it out of open_notes and add it to our list
             if note in open_notes:
 
+                # IMPORTANT: transpose to correct key signature occurs here
+                new_note = note + self.key_sig_transpose
                 start_time, velocity = open_notes[note]
                 duration = time_now - start_time
 
                 if start_time not in track_result:
                     track_result[start_time] = []
-                track_result[start_time].append((note, duration, velocity))
+                track_result[start_time].append((new_note, duration, velocity))
 
                 del open_notes[note]
+
+                # save the octave distribution to use to transpose later
+                note, octave = midi_to_music(new_note)
+                if note == "C":
+                    track_C_octaves.update([octave])
 
             else:
                 print("Note off with no start:", msg.note)
 
 
 
-        for track in mid.tracks:
+        for track in self.mid.tracks:
 
             time_now = 0  # absolute time
             open_notes = {}  # {msg.note: tuple(start_time, velocity)}
             track_result = {}  # {start_time: [tuple(note, duration, velocity), ...]}
+            track_C_octaves = Counter()
+
 
             for msg in track:
 
@@ -421,21 +439,34 @@ class MidiVector():
             for key, value in open_notes.items():
 
                 print("Note has no end:", key)
+                print("       duration:", time_now - value[0])
                 print("       velocity:", value[1])
-                print("       duration:", time_now - value[2])
                 print("Removing from <open_notes>...")
 
                 close_note(key)
 
 
-            if len(track_result.keys()):
-                result.append(track_result)
+            if not len(track_result.keys()):
+                continue
+
+
+            # transpose it to the correct octave (C4)
+            most_common_octave = track_C_octaves.most_common(1)[0][0]
+            if most_common_octave != 4:
+
+                octave_transpose = (4 - most_common_octave) * 12
+                for start_time, note_list in track_result.copy().items():
+                    new_note_list = []
+                    for note, duration, velocity in note_list:
+                        new_note_list.append((note + octave_transpose, duration, velocity))
+                    track_result[start_time] = new_note_list
+
+
+            result.append(track_result)
 
 
 
         return result
-
-
 
 
 
@@ -468,5 +499,6 @@ def build_all_meta(dir="raw_midi"):
 
 
 if __name__ == "__main__":
-    build_all_meta("/media/mark/Windows/raw_midi")
-    pass
+    df = pd.read_csv("/media/mark/Windows/raw_midi/meta.csv", index_col="filename")
+    mv = MidiVector("/media/mark/Windows/raw_midi/Barrios/Barrios_Estudio_Si_menor.mid", df)
+    l = mv.tracks_to_list()
