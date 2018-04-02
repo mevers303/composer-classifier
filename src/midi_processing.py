@@ -86,7 +86,7 @@ class MidiArchiveMeta():
 
         columns = ["composer", "type", "tracks", "ticks_per_beat", "key", "first_time_n", "first_time_d", "first_time_32nd", "time_clocks_per_click", "first_note", "first_note_time", "has_note_off", "has_key_change"]
         columns.extend(music_notes)
-        # columns.extend(["note_" + str(i) for i in range(128)])
+        columns.extend(["midi_" + str(i) for i in range(128)])
         self.meta_df = pd.DataFrame(columns=columns)
         self.meta_df.index.name = "filename"
 
@@ -219,7 +219,7 @@ class MidiArchiveMeta():
         key_sig = time_n = time_d = time_32nd = time_clocks_per_click = first_note = first_note_time = None
         has_note_off = has_key_change = False
         music_notes_before_key_change = np.zeros((12,))
-        # midi_notes_before_key_change = np.zeros((128,))
+        midi_notes_before_key_change = np.zeros((128,))
 
         time_now = 0
         last_key_change_time = 0
@@ -266,7 +266,7 @@ class MidiArchiveMeta():
                         first_note = midi_to_music(msg.note)[0]
                         first_note_time = msg.time
                     if not has_key_change:
-                        # midi_notes_before_key_change[msg.note] += 1
+                        midi_notes_before_key_change[msg.note] += 1
                         music_notes_before_key_change[msg.note % 12] += 1
 
 
@@ -279,7 +279,7 @@ class MidiArchiveMeta():
 
                 values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off, has_key_change]
                 values.extend(music_notes_before_key_change)
-                # values.extend(midi_notes_before_key_change)
+                values.extend(midi_notes_before_key_change)
                 self.meta_df.loc[file] = values
 
                 self.midi_filenames_parsed += 1
@@ -395,8 +395,8 @@ def build_all_meta(dir="raw_midi"):
 
     global MAXIMUM_WORKS
     global MINIMUM_WORKS
-    MAXIMUM_WORKS = 2000
-    MINIMUM_WORKS = 10
+    MAXIMUM_WORKS = 10000
+    MINIMUM_WORKS = 1
 
     archive = MidiArchiveMeta(dir)
     archive.get_all_filenames()
@@ -419,5 +419,5 @@ def build_all_meta(dir="raw_midi"):
 
 
 if __name__ == "__main__":
-    # build_all_meta("/media/mark/Windows/raw_midi")
+    build_all_meta("/media/mark/Windows/raw_midi")
     pass
