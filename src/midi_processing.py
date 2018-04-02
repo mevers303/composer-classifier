@@ -16,8 +16,20 @@ import numpy as np
 
 from src.globals import *
 
-
+#               0     1    2    3     4    5    6     7    8     9    10    11
 music_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+key_signatures = [[ 0,  2,  4,  5,  7,  9, 11],
+                  [ 1,  3,  5,  6,  8, 10,  0],
+                  [ 2,  4,  6,  7,  9, 11,  1],
+                  [ 3,  5,  7,  8, 10,  0,  2],
+                  [ 4,  6,  8,  9, 11,  1,  3],
+                  [ 5,  7,  9, 10,  0,  2,  4],
+                  [ 6,  8, 10, 11,  1,  3,  5],
+                  [ 7,  9, 11,  0,  2,  4,  6],
+                  [ 8, 10,  0,  1,  3,  5,  7],
+                  [ 9, 11,  1,  2,  4,  6,  8],
+                  [10,  0,  2,  3,  5,  7,  9],
+                  [11,  1,  3,  4,  6,  8, 10]]
 
 
 def dump_tracks(midi_file):
@@ -38,28 +50,6 @@ def midi_to_music(midi_note):
 def midi_to_string(midi_note):
     note = midi_to_music(midi_note)
     return note[0] + str(note[1])
-
-def transpose_to_c(mid):
-
-    if mid.first_key_sig == "C":
-        return mid
-
-    if mid.first_key_sig == "D":
-        transpose = -2
-    elif mid.first_key_sig == "E":
-        transpose = -4
-    if mid.first_key_sig == "F":
-        transpose = -5
-    elif mid.first_key_sig == "G":
-        transpose = 5
-    if mid.first_key_sig == "A":
-        transpose = 3
-    elif mid.first_key_sig == "B":
-        transpose = 1
-
-
-    for track in mid.tracks:
-        pass
 
 
 
@@ -309,7 +299,12 @@ class MidiArchiveVector():
 
 
     def tracks_to_list(self, mid):
-        """We need to loop """
+        """
+        Converts a mido MidiFile into a list of dictionaries.
+        :param mid: A mido.MidiFile object
+        :return: A list of dictionaries.  Each dictionary represents a track.  The dictionaries are in the format
+                 {start_time: [tuple(note, duration, velocity), ...]}
+        """
 
         ticks_transformer = TICKS_PER_BEAT / mid.ticks_per_beat  # coefficient to convert msg.time
         result = []
