@@ -170,7 +170,7 @@ class MidiArchive():
         self.thread_lock = None
 
 
-        return self.midi_objects, self.meta_df
+        return self.meta_df
 
 
 
@@ -224,10 +224,10 @@ class MidiArchive():
                         continue
 
                     self.key_sigs.add(msg.key)
-                    if 0 < time_now - last_key_change_time < 5:
-                        print("\nVery short key signature change ({}s) -> {}".format(time_now - last_key_change_time, mid.filename))
+                    # if 0 < time_now - last_key_change_time < 5:
+                    #     print("\nVery short key signature change ({}s) -> {}".format(time_now - last_key_change_time, mid.filename))
 
-                    if not key_sig:
+                    if not key_sig or not music_notes_before_key_change.sum():
                         key_sig = msg.key
                     elif time_now - last_key_change_time != 0:  # if the time since the last key change is zero
                         has_key_change = True
@@ -297,7 +297,7 @@ class MidiVectorArchive():
     def tracks_to_list(self, mid):
         """We need to loop """
 
-
+        ticks_transformer = TICKS_PER_BEAT / mid.ticks_per_beat
 
         time_now = 0  # start of the track
         open_notes = {}  # key = note, value = tuple(index_in_result, velocity, start_time)
@@ -317,36 +317,42 @@ class MidiVectorArchive():
                 print("Note off with no start:", msg.note)
 
 
-        for msg in track:
+        for track in mid.tracks:
 
-            #  msg.time is the time since the last message.  So add this to time to get the current time since the track start
-            time_now += msg.time
+            for msg in track:
 
-            if msg.type == 'note_on':
+                # msg.time is the time since the last message.  So add this to time to get the current time since the track start
+                time_now += msg.time * ticks_transformer
 
-                # if the velocity is 0, that means it is a "key up" message, close the note and move on
-                if msg.velocity == 0:
+                if msg.type == "note_off":
                     close_note(msg.note)
                     continue
 
-                # it shouldn't be open already, but check any way.
-                if msg.note in open_notes:
-                    close_note(msg.note)
+                if msg.type == 'note_on':
 
-                # add it to open notes and result (result will be modified later)
-                open_notes[msg.note] = (len(result), msg.velocity, time_now)  # len(result is the index of what's about to be added
-                result.append((msg.note, msg.velocity, time_now))
+                    # if the velocity is 0, that means it is a "note_off" message, close the note and move on
+                    if msg.velocity == 0:
+                        close_note(msg.note)
+                        continue
+
+                    # it shouldn't be open already, but check any way.
+                    if msg.note in open_notes:
+                        close_note(msg.note)
+
+                    # add it to open notes and result (result will be modified later)
+                    open_notes[msg.note] = (len(result), msg.velocity, time_now)  # len(result is the index of what's about to be added
+                    result.append((msg.note, msg.velocity, time_now))
 
 
-        # look for still playing notes and close them if all the messages are done
-        for key, value in open_notes.items():
+            # look for still playing notes and close them if all the messages are done
+            for key, value in open_notes.items():
 
-            print("Note has no end:", key)
-            print("       velocity:", value[1])
-            print("       duration:", time_now - value[2])
-            print("Removing from <open_notes>...")
+                print("Note has no end:", key)
+                print("       velocity:", value[1])
+                print("       duration:", time_now - value[2])
+                print("Removing from <open_notes>...")
 
-            close_note(key)
+                close_note(key)
 
 
         return result
@@ -365,7 +371,7 @@ def build_all_meta(dir="raw_midi"):
 
     archive = MidiArchive(dir)
     archive.get_all_filenames()
-    midis, df = archive.build_meta()
+    df = archive.build_meta()
 
     for file in archive.midi_filenames_invalid:
         archive.midi_filenames.remove(file)
@@ -384,5 +390,5 @@ def build_all_meta(dir="raw_midi"):
 
 
 if __name__ == "__main__":
-    build_all_meta()
+    build_all_meta("/media/mark/Windows/raw_midi")
     pass

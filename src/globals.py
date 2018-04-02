@@ -10,7 +10,9 @@ MINIMUM_WORKS = 100
 MAXIMUM_WORKS = 200
 
 # How many threads to use when parsing the MIDI archive?
-NUM_THREADS = 3
+NUM_THREADS = 2
+# How many ticks per beat should each track be converted to?
+TICKS_PER_BEAT = 1024
 
 
 
