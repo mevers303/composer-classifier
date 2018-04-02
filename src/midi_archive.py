@@ -34,7 +34,7 @@ class MidiArchive():
         self.midi_filenames_invalid = []
         self.midi_filenames_parsed = 0
 
-        columns = ["composer", "type", "tracks", "ticks_per_beat", "first_key_sig", "first_time_n", "first_time_d", "first_time_32nd", "time_clocks_per_click", "first_note", "first_note_time", "has_note_off", "has_key_change"]
+        columns = ["composer", "type", "tracks", "ticks_per_beat", "first_key_sig", "predicted_key_sig", "first_time_n", "first_time_d", "first_time_32nd", "time_clocks_per_click", "first_note", "first_note_time", "has_note_off", "has_key_change"]
         columns.extend(MUSIC_NOTES)
         # columns.extend(["midi_" + str(i) for i in range(128)])
         self.meta_df = pd.DataFrame(columns=columns)
@@ -53,6 +53,7 @@ class MidiArchive():
         """
         Returns a list of files in <self.base_dir> and their associated label in y.  Files must be in
         <dir>/<composer>/*.mid"
+        
         :return: None
         """""
 
@@ -102,7 +103,8 @@ class MidiArchive():
     def build_meta_df(self):
         """
         Builds the meta data pandas dataframe
-        :return: None
+
+        :return: The pandas dataframe filled with metadata.
         """
 
         chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
@@ -140,11 +142,11 @@ class MidiArchive():
 
     def build_meta_df_chunk(self, filenames, labels):
         """
+        Gets the metadata for a list of files.  This exists as a chunk to work with threading.
+
         :param filenames: list of paths to MIDI files
         :param labels: list of labels (composers) for the MIDI files
         :return: None
-
-        Gets the metadata for a list of files.  This exists as a chunk to work with threading.
         """
 
         for file, composer in zip(filenames, labels):
@@ -160,6 +162,7 @@ class MidiArchive():
     def parse_midi_meta(self, file, composer):
         """
         Adds a MIDI file's metadata to the meta_df pandas dataframe.
+
         :param file: path to a MIDI file
         :param composer: the label (composer) for this file
         :return: None
@@ -223,14 +226,17 @@ class MidiArchive():
                         has_note_off = True
 
 
+
+            predicted_key_sig = get_key_sig(music_notes_before_key_change)
+            values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, predicted_key_sig, time_n,
+                      time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off,
+                      has_key_change]
+            values.extend(music_notes_before_key_change)
+            # values.extend(midi_notes_before_key_change)
+            self.meta_df.loc[file] = values
+            self.midi_filenames_parsed += 1
+
             with self.thread_lock:
-
-                values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off, has_key_change]
-                values.extend(music_notes_before_key_change)
-                # values.extend(midi_notes_before_key_change)
-                self.meta_df.loc[file] = values
-
-                self.midi_filenames_parsed += 1
                 progress_bar(self.midi_filenames_parsed, self.midi_filenames_total)
 
 
@@ -239,10 +245,10 @@ class MidiArchive():
             raise KeyboardInterrupt
 
         except:
+            self.midi_filenames_invalid.append(file)
+            self.midi_filenames_parsed += 1
             with self.thread_lock:
                 print("\nERROR -> Skipping invalid file:", file)
-                self.midi_filenames_invalid.append(file)
-                self.midi_filenames_parsed += 1
                 progress_bar(self.midi_filenames_parsed, self.midi_filenames_total)
 
 
@@ -251,7 +257,7 @@ class MidiArchive():
 def build_all_meta(dir="midi", delete_invalid_files=False):
     """
     Creates a csv file containing the metadata for a directory containing MIDI files organized into folders named after
-    their composer
+    their composer.
     
     :param dir: The path to the base directory of the archive.
     :param delete_invalid_files: Whether or not to delete invalid MIDI files from the system.
@@ -282,6 +288,7 @@ def build_all_meta(dir="midi", delete_invalid_files=False):
 def get_meta_df(dir="midi"):
     """
     Gets a meta dataframe with the proper schema from <dir>.
+
     :param dir: The base directory of the archive.
     :return: A pandas dataframe with the metadate.
     """

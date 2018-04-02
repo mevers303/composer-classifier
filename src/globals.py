@@ -4,15 +4,18 @@
 # Global variables and functions
 
 from sys import stdout
+from numpy import argsort
 
 
 
 ####################### OPTIONS #########################
+######### FEATURES
 # How many pieces must a composer have for us to consider them?
 MINIMUM_WORKS = 100
 # How many pieces will we use from each composer?
 MAXIMUM_WORKS = 200
 
+###### HYPER PARAMETERS
 # How many threads to use when parsing the MIDI archive?
 NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
@@ -41,14 +44,33 @@ KEY_SIGNATURES = [[0, 2, 4, 5, 7, 9, 11],  # C
 
 ####################### FUNCTIONS #######################
 def dump_tracks(midi_file):
+    """
+    Prints all the tracks in a mido MidiFile object.
+
+    :param midi_file: A mido.MidiFile object.
+    :return: None
+    """
     for i, track in enumerate(midi_file.tracks):
         print(str(i).rjust(2), ": ", track, sep="")
 
-def dump_msgs(track):
-    for i, msg in enumerate(track):
+def dump_msgs(mido_object):
+    """
+    Prints all the messages contained in a track or midi file.  The delta time is in seconds when you give it a
+    mido.MidiFile.
+
+    :param track: A mido MidiTrack or MidiFile
+    :return: None
+    """
+    for i, msg in enumerate(mido_object):
         print(str(i).rjust(4), ": ", msg, sep="")
 
 def midi_to_music(midi_note):
+    """
+    Returns a tuple of (<note name>, octave).
+
+    :param midi_note: The midi note value.
+    :return: (<string> Note Name, <int> Octave)
+    """
 
     music_note = MUSIC_NOTES[midi_note % 12]
     octave = int(midi_note / 12) - 1
@@ -56,14 +78,52 @@ def midi_to_music(midi_note):
     return music_note, octave
 
 def midi_to_string(midi_note):
+    """
+    Converts a MIDI note to a string of it's name and octave (like C4 for middle C).
+
+    :param midi_note: The midi note value
+    :return: A string as described above.
+    """
     note = midi_to_music(midi_note)
     return note[0] + str(note[1])
+
+def get_key_sig(note_dist):
+    """
+    Uses the note distribution in the meta dataframe to determine a filename's key signature
+    :param note_dist: Distribution of notes as per music_notes
+    :return: The index of key_signatures that is the best match.
+    """
+
+    top_notes = set(argsort(note_dist)[::-1][:7])
+
+
+    best_match = -1
+    best_match_set_dif_len = 100
+
+    for i in range(len(KEY_SIGNATURES)):
+
+        # find number of uncommon notes
+        set_dif_len = len(set(KEY_SIGNATURES[i]) - top_notes)
+
+        # if this one is better than the last, save it
+        if set_dif_len < best_match_set_dif_len:
+            best_match = i
+            best_match_set_dif_len = set_dif_len
+
+            # if there are 0 uncommon notes, it is our match!
+            if not best_match_set_dif_len:
+                break
+
+
+    return best_match
+
 
 
 _PROGRESS_BAR_LAST_I = 100
 def progress_bar(done, total, resolution = 0):
     """
     Prints a progress bar to stdout.
+
     :param done: Number of items complete
     :param total: Total number if items
     :param resolution: How often to update the progress bar (in percentage).  0 will update each time

@@ -5,7 +5,6 @@
 
 import mido
 import pandas as pd
-import numpy as np
 from collections import Counter
 
 from src.globals import *
@@ -39,38 +38,6 @@ class MidiVector():
 
 
 
-    def get_key_sig(self, note_dist):
-        """
-        Uses the note distribution in the meta dataframe to determine a filename's key signature
-        :param note_dist: Distribution of notes as per music_notes
-        :return: The index of key_signatures that is the best match.
-        """
-
-        top_notes = set(np.argsort(note_dist)[::-1][:7])
-
-
-        best_match = -1
-        best_match_set_dif_len = 100
-
-        for i in range(len(KEY_SIGNATURES)):
-
-            # find number of uncommon notes
-            set_dif_len = len(set(KEY_SIGNATURES[i]) - top_notes)
-
-            # if this one is better than the last, save it
-            if set_dif_len < best_match_set_dif_len:
-                best_match = i
-                best_match_set_dif_len = set_dif_len
-
-                # if there are 0 uncommon notes, it is our match!
-                if not best_match_set_dif_len:
-                    break
-
-
-        return best_match
-
-
-
     def get_keysig_transpose_interval(self):
         """
         Gets the transpose interval for a filename from the meta dataframe.
@@ -84,7 +51,7 @@ class MidiVector():
 
         # get the key signature
         note_dist = row[MUSIC_NOTES].values.astype(int)
-        key_sig = self.get_key_sig(note_dist)
+        key_sig = get_key_sig(note_dist)
 
         # first transpose based on key signature
         if key_sig < 6:
