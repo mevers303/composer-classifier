@@ -289,6 +289,21 @@ class MidiArchiveMeta():
 
 
 
+class MidiMessage():
+
+    def __init__(self, msg, start_time):
+        self.note = msg.note
+        self.velocity = msg.velocity
+        self.duration = None
+        self.channel = msg.channel
+        self.start_time = start_time
+
+    def transpose(self, interval):
+        if self.channel != 10:
+            self.note += interval
+
+
+
 
 class MidiVector():
 
@@ -382,32 +397,32 @@ class MidiVector():
             # if it's already playing, take it out of open_notes and add it to our list
             if note in open_notes:
 
+                this_msg = open_notes[note]
                 # IMPORTANT: transpose to correct key signature occurs here
-                new_note = note + self.key_sig_transpose
-                start_time, velocity = open_notes[note]
-                duration = time_now - start_time
+                this_msg.transpose(self.key_sig_transpose)
+                this_msg.duration = time_now - this_msg.start_time
 
-                if start_time not in track_result:
-                    track_result[start_time] = []
-                track_result[start_time].append((new_note, duration, velocity))
+                if this_msg.start_time not in track_result:
+                    track_result[this_msg.start_time] = []
+                track_result[this_msg.start_time].append(this_msg)
 
                 del open_notes[note]
 
                 # save the octave distribution to use to transpose later
-                note, octave = midi_to_music(new_note)
-                if note == "C":
-                    track_C_octaves.update([octave])
+                music_note, octave = midi_to_music(this_msg.note)
+                # if music_note == "C":
+                track_C_octaves.update([octave])
 
             else:
-                print("Note off with no start:", msg.note)
+                print("Note off with no start:", note)
 
 
 
         for track in self.mid.tracks:
 
             time_now = 0  # absolute time
-            open_notes = {}  # {msg.note: tuple(start_time, velocity)}
-            track_result = {}  # {start_time: [tuple(note, duration, velocity), ...]}
+            open_notes = {}  # {msg.note: MidiMessage}
+            track_result = {}  # {start_time: [MidiMessage, ...]}
             track_C_octaves = Counter()
 
 
@@ -432,15 +447,15 @@ class MidiVector():
                         close_note(msg.note)
 
                     # add it to open notes
-                    open_notes[msg.note] = (time_now, msg.velocity)
+                    open_notes[msg.note] = MidiMessage(msg, time_now)
 
 
             # look for still playing notes and close them if all the messages are done
             for key, value in open_notes.items():
 
                 print("Note has no end:", key)
-                print("       duration:", time_now - value[0])
-                print("       velocity:", value[1])
+                print("       duration:", time_now - value.start_time)
+                print("       velocity:", value.velocity)
                 print("Removing from <open_notes>...")
 
                 close_note(key)
@@ -456,10 +471,8 @@ class MidiVector():
 
                 octave_transpose = (4 - most_common_octave) * 12
                 for start_time, note_list in track_result.copy().items():
-                    new_note_list = []
-                    for note, duration, velocity in note_list:
-                        new_note_list.append((note + octave_transpose, duration, velocity))
-                    track_result[start_time] = new_note_list
+                    for msg in note_list:
+                        msg.transpose(octave_transpose)
 
 
             result.append(track_result)
