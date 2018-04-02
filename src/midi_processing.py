@@ -65,9 +65,15 @@ def transpose_to_c(mid):
 
 
 
-class MidiArchive():
+class MidiArchiveMeta():
+    """
+    Class for building the metadata for a MIDI archive.
+    """
 
     def __init__(self, base_dir="raw_midi/"):
+        """
+        :param base_dir: The base directory where the MIDI files are contained in composer subfolders.
+        """
 
         self.base_dir = base_dir
         self.composers = set()
@@ -94,7 +100,11 @@ class MidiArchive():
 
 
     def get_all_filenames(self):
-        """Returns a list of files in <dir> and their associated label in y.  Files must be in <dir>/<composer>/*.mid"""
+        """
+        Returns a list of files in <self.base_dir> and their associated label in y.  Files must be in
+        <dir>/<composer>/*.mid"
+        :return: None
+        """""
 
         self.midi_filenames = []
         self.midi_filenames_labels = []
@@ -140,6 +150,10 @@ class MidiArchive():
 
 
     def build_meta(self):
+        """
+        Builds the meta data pandas dataframe
+        :return: None
+        """
 
         chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
         chunkified_filenames = [self.midi_filenames[i:i + chunk_size] for i in
@@ -153,7 +167,7 @@ class MidiArchive():
         self.stop_threads = False
 
         for filenames, labels in zip(chunkified_filenames, chunkified_labels):
-            thread = threading.Thread(target=MidiArchive.build_meta_chunk,
+            thread = threading.Thread(target=MidiArchiveMeta.build_meta_chunk,
                                       args=(self, filenames, labels))
             thread.start()
             self.threads.append(thread)
@@ -287,7 +301,7 @@ class MidiArchive():
 
 
 
-class MidiVectorArchive():
+class MidiArchiveVector():
 
     def __init__(self, meta_df):
 
@@ -297,32 +311,43 @@ class MidiVectorArchive():
     def tracks_to_list(self, mid):
         """We need to loop """
 
-        ticks_transformer = TICKS_PER_BEAT / mid.ticks_per_beat
-
-        time_now = 0  # start of the track
-        open_notes = {}  # key = note, value = tuple(index_in_result, velocity, start_time)
-        result = []  # list of tuple(note, velocity, duration)
+        ticks_transformer = TICKS_PER_BEAT / mid.ticks_per_beat  # coefficient to convert msg.time
+        result = []
 
         def close_note(note):
-            """Inner function to move a note from open_notes to result."""
+            """
+            Inner function to move a note from open_notes to track_result.
+            :param note: The note to close
+            :return: None
+            """
 
             # if it's already playing, take it out of open_notes and add it to our list
             if note in open_notes:
-                open_note_i, velocity, start_time = open_notes[note]
+
+                start_time, velocity = open_notes[note]
                 duration = time_now - start_time
-                result[open_note_i] = (note, velocity, duration)  # change the duration for this note in result
+
+                if start_time not in track_result:
+                    track_result[start_time] = []
+                track_result[start_time].append((note, duration, velocity))
+
                 del open_notes[note]
 
             else:
                 print("Note off with no start:", msg.note)
 
 
+
         for track in mid.tracks:
+
+            time_now = 0  # absolute time
+            open_notes = {}  # {msg.note: tuple(start_time, velocity)}
+            track_result = {}  # {start_time: [tuple(note, duration, velocity), ...]}
 
             for msg in track:
 
                 # msg.time is the time since the last message.  So add this to time to get the current time since the track start
-                time_now += msg.time * ticks_transformer
+                time_now += int(msg.time * ticks_transformer)
 
                 if msg.type == "note_off":
                     close_note(msg.note)
@@ -339,9 +364,8 @@ class MidiVectorArchive():
                     if msg.note in open_notes:
                         close_note(msg.note)
 
-                    # add it to open notes and result (result will be modified later)
-                    open_notes[msg.note] = (len(result), msg.velocity, time_now)  # len(result is the index of what's about to be added
-                    result.append((msg.note, msg.velocity, time_now))
+                    # add it to open notes
+                    open_notes[msg.note] = (time_now, msg.velocity)
 
 
             # look for still playing notes and close them if all the messages are done
@@ -353,6 +377,11 @@ class MidiVectorArchive():
                 print("Removing from <open_notes>...")
 
                 close_note(key)
+
+
+            if len(track_result.keys()):
+                result.append(track_result)
+
 
 
         return result
@@ -369,7 +398,7 @@ def build_all_meta(dir="raw_midi"):
     MAXIMUM_WORKS = 2000
     MINIMUM_WORKS = 10
 
-    archive = MidiArchive(dir)
+    archive = MidiArchiveMeta(dir)
     archive.get_all_filenames()
     df = archive.build_meta()
 
@@ -390,5 +419,5 @@ def build_all_meta(dir="raw_midi"):
 
 
 if __name__ == "__main__":
-    build_all_meta("/media/mark/Windows/raw_midi")
+    # build_all_meta("/media/mark/Windows/raw_midi")
     pass
