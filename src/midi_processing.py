@@ -76,7 +76,7 @@ class MidiArchiveMeta():
 
         columns = ["composer", "type", "tracks", "ticks_per_beat", "key", "first_time_n", "first_time_d", "first_time_32nd", "time_clocks_per_click", "first_note", "first_note_time", "has_note_off", "has_key_change"]
         columns.extend(music_notes)
-        columns.extend(["midi_" + str(i) for i in range(128)])
+        # columns.extend(["midi_" + str(i) for i in range(128)])
         self.meta_df = pd.DataFrame(columns=columns)
         self.meta_df.index.name = "filename"
 
@@ -199,17 +199,16 @@ class MidiArchiveMeta():
 
     def parse_midi_meta(self, file, composer):
         """
+        Adds a MIDI file's metadata to the meta_df pandas dataframe.
         :param file: path to a MIDI file
         :param composer: the label (composer) for this file
         :return: None
-
-        Adds a MIDI file's metadata to the meta_df pandas dataframe.
         """
 
         key_sig = time_n = time_d = time_32nd = time_clocks_per_click = first_note = first_note_time = None
         has_note_off = has_key_change = False
         music_notes_before_key_change = np.zeros((12,))
-        midi_notes_before_key_change = np.zeros((128,))
+        # midi_notes_before_key_change = np.zeros((128,))
 
         time_now = 0
         last_key_change_time = 0
@@ -255,7 +254,7 @@ class MidiArchiveMeta():
                         first_note = midi_to_music(msg.note)[0]
                         first_note_time = msg.time
                     if not has_key_change and msg.channel != 10:  # skip channel 10 (drums)
-                        midi_notes_before_key_change[msg.note] += 1
+                        # midi_notes_before_key_change[msg.note] += 1
                         music_notes_before_key_change[msg.note % 12] += 1
 
 
@@ -268,7 +267,7 @@ class MidiArchiveMeta():
 
                 values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off, has_key_change]
                 values.extend(music_notes_before_key_change)
-                values.extend(midi_notes_before_key_change)
+                # values.extend(midi_notes_before_key_change)
                 self.meta_df.loc[file] = values
 
                 self.midi_filenames_parsed += 1
@@ -290,7 +289,7 @@ class MidiArchiveMeta():
 
 
 
-class MidiArchiveVector():
+class MidiVector():
 
     def __init__(self, meta_df):
 
@@ -328,8 +327,12 @@ class MidiArchiveVector():
         return best_match
 
 
-
     def get_keysig_transpose_interval(self, filename):
+        """
+        Gets the transpose interval for a filename from the meta dataframe.
+        :param filename: Path to a midi file
+        :return: The interval to use to transpose this file to the correct key signature.
+        """
 
         transpose_interval = 0
 
@@ -347,9 +350,6 @@ class MidiArchiveVector():
 
 
         return transpose_interval
-
-
-
 
 
     def tracks_to_list(self, mid):
