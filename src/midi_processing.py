@@ -219,7 +219,6 @@ class MidiArchiveMeta():
             mid = mido.MidiFile(file)
 
             for msg in mid:
-
                 time_now += msg.time
 
 
@@ -255,7 +254,7 @@ class MidiArchiveMeta():
                     if not first_note:
                         first_note = midi_to_music(msg.note)[0]
                         first_note_time = msg.time
-                    if not has_key_change:
+                    if not has_key_change and msg.channel != 10:  # skip channel 10 (drums)
                         midi_notes_before_key_change[msg.note] += 1
                         music_notes_before_key_change[msg.note % 12] += 1
 
@@ -277,7 +276,7 @@ class MidiArchiveMeta():
 
 
         except KeyboardInterrupt:
-            # do nothing
+            # skip the next except clause
             raise KeyboardInterrupt
 
         except:
