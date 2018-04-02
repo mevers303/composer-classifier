@@ -18,18 +18,18 @@ from src.globals import *
 
 #               0     1    2    3     4    5    6     7    8     9    10    11
 music_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-key_signatures = [[ 0,  2,  4,  5,  7,  9, 11],
-                  [ 1,  3,  5,  6,  8, 10,  0],
-                  [ 2,  4,  6,  7,  9, 11,  1],
-                  [ 3,  5,  7,  8, 10,  0,  2],
-                  [ 4,  6,  8,  9, 11,  1,  3],
-                  [ 5,  7,  9, 10,  0,  2,  4],
-                  [ 6,  8, 10, 11,  1,  3,  5],
-                  [ 7,  9, 11,  0,  2,  4,  6],
-                  [ 8, 10,  0,  1,  3,  5,  7],
-                  [ 9, 11,  1,  2,  4,  6,  8],
-                  [10,  0,  2,  3,  5,  7,  9],
-                  [11,  1,  3,  4,  6,  8, 10]]
+key_signatures = [[ 0,  2,  4,  5,  7,  9, 11],  # C
+                  [ 1,  3,  5,  6,  8, 10,  0],  # C#
+                  [ 2,  4,  6,  7,  9, 11,  1],  # D
+                  [ 3,  5,  7,  8, 10,  0,  2],  # D#
+                  [ 4,  6,  8,  9, 11,  1,  3],  # E
+                  [ 5,  7,  9, 10,  0,  2,  4],  # F
+                  [ 6,  8, 10, 11,  1,  3,  5],  # F#
+                  [ 7,  9, 11,  0,  2,  4,  6],  # G
+                  [ 8, 10,  0,  1,  3,  5,  7],  # G#
+                  [ 9, 11,  1,  2,  4,  6,  8],  # A
+                  [10,  0,  2,  3,  5,  7,  9],  # A#
+                  [11,  1,  3,  4,  6,  8, 10]]  # B
 
 
 def dump_tracks(midi_file):
@@ -296,6 +296,42 @@ class MidiArchiveVector():
     def __init__(self, meta_df):
 
         self.meta_df = meta_df
+
+
+    def get_key_sig(self, filename):
+        """
+        Uses the note distribution in the meta dataframe to determine a filename's key signature
+        :param filename: The file path to the midi file.  Also the index of the dataframe.
+        :return: The index of key_signatures that is the best match.
+        """
+
+        row = self.meta_df.loc[filename]
+
+        note_dist = row[music_notes].values.astype(int)
+        top_notes = set(np.argsort(note_dist)[::-1][:7])
+
+
+        best_match = -1
+        best_match_set_dif_len = 100
+
+        for i in range(len(key_signatures)):
+
+            # find number of uncommon notes
+            set_dif_len = len(set(key_signatures[i]) - top_notes)
+
+            # if this one is better than the last, save it
+            if set_dif_len < best_match_set_dif_len:
+                best_match = i
+                best_match_set_dif = set_dif_len
+
+                # if there are 0 uncommon notes, it is our match!
+                if not best_match_set_dif:
+                    break
+
+
+        return best_match
+
+
 
 
     def tracks_to_list(self, mid):
