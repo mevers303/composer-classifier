@@ -298,16 +298,13 @@ class MidiArchiveVector():
         self.meta_df = meta_df
 
 
-    def get_key_sig(self, filename):
+    def get_key_sig(self, note_dist):
         """
         Uses the note distribution in the meta dataframe to determine a filename's key signature
-        :param filename: The file path to the midi file.  Also the index of the dataframe.
+        :param note_dist: Distribution of notes as per music_notes
         :return: The index of key_signatures that is the best match.
         """
 
-        row = self.meta_df.loc[filename]
-
-        note_dist = row[music_notes].values.astype(int)
         top_notes = set(np.argsort(note_dist)[::-1][:7])
 
 
@@ -330,6 +327,28 @@ class MidiArchiveVector():
 
 
         return best_match
+
+
+
+    def get_keysig_transpose_interval(self, filename):
+
+        transpose_interval = 0
+
+        row = self.meta_df.loc[filename]
+
+        # get the key signature
+        note_dist = row[music_notes].values.astype(int)
+        key_sig = self.get_key_sig(note_dist)
+
+        # first transpose based on key signature
+        if key_sig < 6:
+            transpose_interval = -key_sig
+        else:
+            transpose_interval = 12 - key_sig
+
+
+        return transpose_interval
+
 
 
 
