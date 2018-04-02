@@ -12,9 +12,12 @@ import threading
 import time
 import pickle
 import json
+import numpy as np
 
 from src.globals import *
 
+
+music_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 
 def dump_tracks(midi_file):
@@ -24,6 +27,41 @@ def dump_tracks(midi_file):
 def dump_msgs(track):
     for i, msg in enumerate(track):
         print(str(i).rjust(4), ": ", msg, sep="")
+
+def midi_to_music(midi_note):
+
+    music_note = music_notes[midi_note % 12]
+    octave = int(midi_note / 12) - 1
+
+    return music_note, octave
+
+def midi_to_string(midi_note):
+    note = midi_to_music(midi_note)
+    return note[0] + str(note[1])
+
+def transpose_to_c(mid):
+
+    if mid.first_key_sig == "C":
+        return mid
+
+    if mid.first_key_sig == "D":
+        transpose = -2
+    elif mid.first_key_sig == "E":
+        transpose = -4
+    if mid.first_key_sig == "F":
+        transpose = -5
+    elif mid.first_key_sig == "G":
+        transpose = 5
+    if mid.first_key_sig == "A":
+        transpose = 3
+    elif mid.first_key_sig == "B":
+        transpose = 1
+
+
+    for track in mid.tracks:
+        pass
+
+
 
 
 
@@ -38,14 +76,17 @@ class MidiArchive():
         self.midi_filenames_labels = []
         self.midi_filenames_total = 0
         self.midi_filenames_invalid = []
-        self.midi_objects = []
-        self.midi_objects_labels = []
-        self.midi_filenames_loaded = 0
-        self.meta_df = pd.DataFrame(columns=["composer", "type", "ticks_per_beat", "key", "time_n", "time_d", "time_32nd", "first_note", "first_note_time", "has_note_off"])
+        self.midi_filenames_parsed = 0
+
+        columns = ["composer", "type", "tracks", "ticks_per_beat", "key", "first_time_n", "first_time_d", "first_time_32nd", "time_clocks_per_click", "first_note", "first_note_time", "has_note_off", "has_key_change"]
+        columns.extend(music_notes)
+        # columns.extend(["note_" + str(i) for i in range(128)])
+        self.meta_df = pd.DataFrame(columns=columns)
         self.meta_df.index.name = "filename"
 
         self.threads = []
-        self.thread_lock = threading.Lock()
+        self.thread_lock = None
+        self.stop_threads = False
 
         self.key_sigs = set()
         self.time_sigs = set()
@@ -98,7 +139,7 @@ class MidiArchive():
 
 
 
-    def build_mido_and_meta(self, only_build_meta=False):
+    def build_meta(self):
 
         chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
         chunkified_filenames = [self.midi_filenames[i:i + chunk_size] for i in
@@ -106,178 +147,225 @@ class MidiArchive():
         chunkified_labels = [self.midi_filenames_labels[i:i + chunk_size] for i in
                              range(0, len(self.midi_filenames_labels), chunk_size)]
 
+
         print("Loading midi files with", len(chunkified_filenames), "threads...")
+        self.thread_lock = threading.Lock()
+        self.stop_threads = False
+
         for filenames, labels in zip(chunkified_filenames, chunkified_labels):
-            thread = threading.Thread(target=MidiArchive.build_mido_and_meta_chunk, args=(self, filenames, labels, only_build_meta))
+            thread = threading.Thread(target=MidiArchive.build_meta_chunk,
+                                      args=(self, filenames, labels))
             thread.start()
             self.threads.append(thread)
 
-        for thread in self.threads:
-            thread.join()
+        try:
+            for thread in self.threads:
+                thread.join()
+
+        except KeyboardInterrupt:
+            self.stop_threads = True
+            raise KeyboardInterrupt
+
         self.threads = []
+        self.thread_lock = None
 
 
         return self.midi_objects, self.meta_df
 
 
 
-    def build_mido_and_meta_chunk(self, filenames, labels, only_build_meta=False):
+    def build_meta_chunk(self, filenames, labels):
+        """
+        :param filenames: list of paths to MIDI files
+        :param labels: list of labels (composers) for the MIDI files
+        :return: None
+
+        Gets the metadata for a list of files.  This exists as a chunk to work with threading.
+        """
 
         for file, composer in zip(filenames, labels):
-            self.parse_midi_file(file, composer, only_build_meta)
+            if self.stop_threads:
+                break
+            self.parse_midi_meta(file, composer)
 
         # with self.thread_lock:
         #     print("\nThread finished!")
 
 
 
-    def parse_midi_file(self, file, composer, only_build_meta=False):
+    def parse_midi_meta(self, file, composer):
+        """
+        :param file: path to a MIDI file
+        :param composer: the label (composer) for this file
+        :return: None
 
-        key_sig = time_n = time_d = time_32nd = first_note = first_note_time = None
-        has_note_off = False
+        Adds a MIDI file's metadata to the meta_df pandas dataframe.
+        """
+
+        key_sig = time_n = time_d = time_32nd = time_clocks_per_click = first_note = first_note_time = None
+        has_note_off = has_key_change = False
+        music_notes_before_key_change = np.zeros((12,))
+        # midi_notes_before_key_change = np.zeros((128,))
+
+        time_now = 0
+        last_key_change_time = 0
+        last_key = None
 
         try:
             mid = mido.MidiFile(file)
 
             for msg in mid:
 
-                # break if we already know the key signature, time signature, and first note
-                if key_sig and time_n and first_note and has_note_off:
-                    break
+                time_now += msg.time
+
 
                 if msg.type == "key_signature":
+                    if msg.key == last_key:
+                        continue
+
                     self.key_sigs.add(msg.key)
+                    if 0 < time_now - last_key_change_time < 5:
+                        print("\nVery short key signature change ({}s) -> {}".format(time_now - last_key_change_time, mid.filename))
+
                     if not key_sig:
                         key_sig = msg.key
+                    elif time_now - last_key_change_time != 0:  # if the time since the last key change is zero
+                        has_key_change = True
+
+                    last_key_change_time = time_now
+                    last_key = msg.key
+
+
                 elif msg.type == "time_signature":
-                    self.time_sigs.add("{}/{}/{}".format(msg.numerator, msg.denominator, msg.notated_32nd_notes_per_beat))
+                    self.time_sigs.add("{}/{}/{}/{}".format(msg.numerator, msg.denominator, msg.notated_32nd_notes_per_beat, msg.clocks_per_click))
                     if not time_n:
                         time_n = msg.numerator
                         time_d = msg.denominator
                         time_32nd = msg.notated_32nd_notes_per_beat
+                        time_clocks_per_click = msg.clocks_per_click
+
+
                 elif msg.type == "note_on":
+                    if not msg.velocity:
+                        continue
                     if not first_note:
-                        first_note = msg.note
+                        first_note = midi_to_music(msg.note)[0]
                         first_note_time = msg.time
+                    if not has_key_change:
+                        # midi_notes_before_key_change[msg.note] += 1
+                        music_notes_before_key_change[msg.note % 12] += 1
+
+
                 elif msg.type == "note_off":
                     if not has_note_off:
                         has_note_off = True
 
-            mid.first_key_sig = key_sig
-            mid.first_time_sig = (time_n, time_d, time_32nd)
 
             with self.thread_lock:
-                self.meta_df.loc[file] = [composer, mid.type, mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, first_note, first_note_time, has_note_off]
-                if not only_build_meta:
-                    self.midi_objects.append(mid)
-                    self.midi_objects_labels.append(composer)
-                self.midi_filenames_loaded += 1
-                progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
 
+                values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, time_n, time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off, has_key_change]
+                values.extend(music_notes_before_key_change)
+                # values.extend(midi_notes_before_key_change)
+                self.meta_df.loc[file] = values
+
+                self.midi_filenames_parsed += 1
+                progress_bar(self.midi_filenames_parsed, self.midi_filenames_total)
+
+
+        except KeyboardInterrupt:
+            # do nothing
+            raise KeyboardInterrupt
 
         except:
             with self.thread_lock:
-                # print("\nERROR -> Skipping invalid file:", file)
+                print("\nERROR -> Skipping invalid file:", file)
                 self.midi_filenames_invalid.append(file)
-                self.midi_filenames_loaded += 1
-                progress_bar(self.midi_filenames_loaded, self.midi_filenames_total)
+                self.midi_filenames_parsed += 1
+                progress_bar(self.midi_filenames_parsed, self.midi_filenames_total)
 
 
 
-def track_to_list(track):
-    """We need to loop """
-
-    time_now = 0  # start of the track
-    open_notes = {}  # key = note, value = tuple(index_in_result, velocity, start_time)
-    result = []  # list of tuple(note, velocity, duration)
-
-    def close_note(note):
-        """Inner function to move a note from open_notes to result."""
-
-        # if it's already playing, take it out of open_notes and add it to our list
-        if note in open_notes:
-            open_note_i, velocity, start_time = open_notes[note]
-            duration = time_now - start_time
-            result[open_note_i] = (note, velocity, duration)  # change the duration for this note in result
-            del open_notes[note]
-
-        else:
-            print("Note off with no start:", msg.note)
 
 
-    for msg in track:
+class MidiVectorArchive():
 
-        #  msg.time is the time since the last message.  So add this to time to get the current time since the track start
-        time_now += msg.time
+    def __init__(self, meta_df):
 
-        if msg.type == 'note_on':
-
-            # if the velocity is 0, that means it is a "key up" message, close the note and move on
-            if msg.velocity == 0:
-                close_note(msg.note)
-                continue
-
-            # it shouldn't be open already, but check any way.
-            if msg.note in open_notes:
-                close_note(msg.note)
-
-            # add it to open notes and result (result will be modified later)
-            open_notes[msg.note] = (len(result), msg.velocity, time_now)  # len(result is the index of what's about to be added
-            result.append((msg.note, msg.velocity, time_now))
+        self.meta_df = meta_df
 
 
-    # look for still playing notes and close them if all the messages are done
-    for key, value in open_notes.items():
-
-        print("Note has no end:", key)
-        print("       velocity:", value[1])
-        print("       duration:", time_now - value[2])
-        print("Removing from <open_notes>...")
-
-        close_note(key)
-
-
-    return result
+    def tracks_to_list(self, mid):
+        """We need to loop """
 
 
 
-def transpose_to_c(mid):
+        time_now = 0  # start of the track
+        open_notes = {}  # key = note, value = tuple(index_in_result, velocity, start_time)
+        result = []  # list of tuple(note, velocity, duration)
 
-    if mid.first_key_sig == "C":
-        return mid
+        def close_note(note):
+            """Inner function to move a note from open_notes to result."""
 
-    if mid.first_key_sig == "D":
-        transpose = -2
-    elif mid.first_key_sig == "E":
-        transpose = -4
-    if mid.first_key_sig == "F":
-        transpose = -5
-    elif mid.first_key_sig == "G":
-        transpose = 5
-    if mid.first_key_sig == "A":
-        transpose = 3
-    elif mid.first_key_sig == "B":
-        transpose = 1
+            # if it's already playing, take it out of open_notes and add it to our list
+            if note in open_notes:
+                open_note_i, velocity, start_time = open_notes[note]
+                duration = time_now - start_time
+                result[open_note_i] = (note, velocity, duration)  # change the duration for this note in result
+                del open_notes[note]
+
+            else:
+                print("Note off with no start:", msg.note)
 
 
-    for track in mid.tracks:
-        pass
+        for msg in track:
+
+            #  msg.time is the time since the last message.  So add this to time to get the current time since the track start
+            time_now += msg.time
+
+            if msg.type == 'note_on':
+
+                # if the velocity is 0, that means it is a "key up" message, close the note and move on
+                if msg.velocity == 0:
+                    close_note(msg.note)
+                    continue
+
+                # it shouldn't be open already, but check any way.
+                if msg.note in open_notes:
+                    close_note(msg.note)
+
+                # add it to open notes and result (result will be modified later)
+                open_notes[msg.note] = (len(result), msg.velocity, time_now)  # len(result is the index of what's about to be added
+                result.append((msg.note, msg.velocity, time_now))
+
+
+        # look for still playing notes and close them if all the messages are done
+        for key, value in open_notes.items():
+
+            print("Note has no end:", key)
+            print("       velocity:", value[1])
+            print("       duration:", time_now - value[2])
+            print("Removing from <open_notes>...")
+
+            close_note(key)
+
+
+        return result
 
 
 
 
 
 
-def build_meta():
+def build_all_meta(dir="raw_midi"):
 
     global MAXIMUM_WORKS
     global MINIMUM_WORKS
     MAXIMUM_WORKS = 2000
-    MINIMUM_WORKS = 1
+    MINIMUM_WORKS = 10
 
-    archive = MidiArchive("raw_midi/")
+    archive = MidiArchive(dir)
     archive.get_all_filenames()
-    midis, df = archive.build_mido_and_meta(only_build_meta=True)
+    midis, df = archive.build_meta()
 
     for file in archive.midi_filenames_invalid:
         archive.midi_filenames.remove(file)
@@ -285,16 +373,16 @@ def build_meta():
 
 
     print("Saving meta csv...")
-    df.to_csv("raw_midi/all.csv")
+    df.to_csv(os.path.join(dir, "meta.csv"))
     print("Meta CSV file saved!")
 
-    info = {"key_sigs": archive.key_sigs, "time_sigs": archive.time_sigs}
-    with open("raw_midi/info.json", "w") as f:
+    info = {"key_sigs": list(archive.key_sigs), "time_sigs": list(archive.time_sigs)}
+    with open(os.path.join(dir, "info.json"), "w") as f:
         json.dump(info, f)
     print("JSON file saved!")
 
 
 
 if __name__ == "__main__":
-    build_meta()
+    build_all_meta()
     pass
