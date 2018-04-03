@@ -21,7 +21,9 @@ NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
 TICKS_PER_BEAT = 1024
 # The resolution of music notes
-NOTE_RESOLUTION = 64
+NOTE_RESOLUTION = 32
+# The longest note allowed
+MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 
 
 

@@ -62,11 +62,14 @@ class MidiTrackText():
 
         # if it's already playing, take it out of open_notes and add it to our list
         if note in self.open_notes:
-
             this_msg = self.open_notes[note]
+
             # IMPORTANT: transpose to correct key signature occurs here
             this_msg.transpose(self.key_sig_transpose)
             this_msg.duration = self.time_now - this_msg.start_time
+            # if it's too long, shorten it
+            if this_msg.duration > MAXIMUM_NOTE_LENGTH:
+                this_msg.duration = MAXIMUM_NOTE_LENGTH
 
             if this_msg.start_time not in self.track_dict:
                 self.track_dict[this_msg.start_time] = []
@@ -93,10 +96,10 @@ class MidiTrackText():
 
         # look for still playing notes and close them if all the messages are done
         for key, value in self.open_notes.copy().items():
-            print("Note has no end:", key)
-            print("       duration:", self.time_now - value.start_time)
-            print("       velocity:", value.velocity)
-            print("Removing from <open_notes>...")
+            # print("Note has no end:", key)
+            # print("       duration:", self.time_now - value.start_time)
+            # print("       velocity:", value.velocity)
+            # print("Removing from <open_notes>...")
 
             self.close_note(key)
 
