@@ -4,8 +4,10 @@
 # Functions for processing MIDI files
 
 import mido
+import numpy as np
 import pandas as pd
 from collections import Counter
+from sklearn.feature_extraction.text import CountVectorizer
 
 from src.globals import *
 
@@ -25,6 +27,8 @@ class MidiMessage():
             self.note += interval
 
 
+
+
 class MidiTrackText():
 
     def __init__(self, track, ticks_transformer, key_sig_transpose):
@@ -38,12 +42,13 @@ class MidiTrackText():
 
         self.time_now = 0  # absolute time
         self.open_notes = {}  # {msg.note: MidiMessage}
-        self.track_dict = {}  # {start_time: [MidiMessage, ...]}
+        self.track_dict = None  # {start_time: [MidiMessage, ...]}
         self.track_C_octaves = Counter()
 
         self.track = track
         self.ticks_transformer = ticks_transformer
         self.key_sig_transpose = key_sig_transpose
+        self.channel = -1
 
 
 
@@ -75,7 +80,8 @@ class MidiTrackText():
             self.track_C_octaves.update([octave])
 
         else:
-            print("Note off with no start:", note)
+            # print("Note off with no start:", note)
+            pass
 
 
 
@@ -87,7 +93,7 @@ class MidiTrackText():
         """
 
         # look for still playing notes and close them if all the messages are done
-        for key, value in self.open_notes.items():
+        for key, value in self.open_notes.copy().items():
             print("Note has no end:", key)
             print("       duration:", self.time_now - value.start_time)
             print("       velocity:", value.velocity)
@@ -122,6 +128,8 @@ class MidiTrackText():
         :return: The messages as a time series in a list.
         """
 
+        self.track_dict = {}
+
         for msg in self.track:
 
             # msg.time is the time since the last message.  So add this to time to get the current time since the track start
@@ -145,6 +153,9 @@ class MidiTrackText():
                 # add it to open notes
                 self.open_notes[msg.note] = MidiMessage(msg, self.time_now)
 
+                if self.channel == -1:
+                    self.channel = msg.channel
+
 
         self.close_all_notes()
         # if the track didn't contain any actual notes, only meta
@@ -153,11 +164,12 @@ class MidiTrackText():
 
         # transpose it to the most common octave
         self.transpose_octavewise()
+
         return self.track_dict
 
 
 
-    def to_list(self):
+    def to_text(self):
         """
         Converts a track into a list of text representations.
 
@@ -165,14 +177,25 @@ class MidiTrackText():
         """
 
         self.to_dict()
-        result = []
+
+        if not self.track_dict:
+            return None
+
+        if self.channel != 10:
+            result = "TRACK_START"
+        else:
+            result = "DRUM_TRACK_START"
 
         for time, notes in sorted(self.track_dict.items()):
             step = [midi_to_string(msg.note) + ":" + str(bin_note_duration(msg.duration)) for msg in sorted(notes, key=lambda x: x.note)]
-            result.append(";".join(step))
+            result += " " + ";".join(step)
+
+        if self.channel != 10:
+            result += " TRACK_END"
+        else:
+            result += " DRUM_TRACK_END"
 
         return result
-
 
 
 
@@ -219,15 +242,14 @@ class MidiFileBase():
 
 
 
-
-
 class MidiFileText(MidiFileBase):
 
     def __init__(self, filename, meta_df):
         MidiFileBase.__init__(self, filename, meta_df)
+        self.text_list = None
 
 
-    def to_list(self):
+    def to_text(self):
         """
         Converts a mido MidiFile into a list of dictionaries.
         :param mid: A mido.MidiFile object
@@ -235,23 +257,27 @@ class MidiFileText(MidiFileBase):
                  {start_time: [tuple(note, duration, velocity), ...]}
         """
 
-        result = []
+        self.text_list = []
 
         for track in self.mid.tracks:
 
             track_converter = MidiTrackText(track, self.ticks_transformer, self.key_sig_transpose)
-            track_result = track_converter.to_list()
+            track_result = track_converter.to_text()
 
             if track_result:
-                result.append(track_result)
+                self.text_list.append(track_result)
 
-        return result
+        return " ".join(self.text_list)
+
 
 
 
 
 
 if __name__ == "__main__":
+    file = "raw_midi/Arcas/Arcas_Fagot_.mid"
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
-    m = MidiFileText("raw_midi/Barber/barber_I.mid", df)
-    l = m.to_list()
+    m = MidiFileText(file, df)
+    mid = mido.MidiFile(file)
+    t = m.to_text()
+    v, cv = m.to_vector()
