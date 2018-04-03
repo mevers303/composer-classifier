@@ -79,9 +79,8 @@ class MidiTrackText():
             # if music_note == "C":
             self.track_C_octaves.update([octave])
 
-        else:
-            # print("Note off with no start:", note)
-            pass
+        # else:
+        #     print("Note off with no start:", note)
 
 
 
@@ -267,7 +266,7 @@ class MidiFileText(MidiFileBase):
             if track_result:
                 self.text_list.append(track_result)
 
-        return " ".join(self.text_list)
+        return self.text_list
 
 
 
@@ -280,4 +279,3 @@ if __name__ == "__main__":
     m = MidiFileText(file, df)
     mid = mido.MidiFile(file)
     t = m.to_text()
-    v, cv = m.to_vector()
