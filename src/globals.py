@@ -142,7 +142,7 @@ def progress_bar(done, total, resolution = 0):
         # print the progress bar
         stdout.write("[{}]{}%".format(("-" * int(i / 2) + (">" if i < 100 else "")).ljust(50), str(i).rjust(4)))
         # print the text figures
-        stdout.write("({}/{})".format(done, total).rjust(13))
+        stdout.write("({}/{})".format(done, total).rjust(15))
         stdout.flush()
 
     if i == 100:

@@ -227,7 +227,7 @@ class MidiArchive():
 
 
 
-            predicted_key_sig = get_key_sig(music_notes_before_key_change)
+            predicted_key_sig = MUSIC_NOTES[get_key_sig(music_notes_before_key_change)]
             values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, predicted_key_sig, time_n,
                       time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off,
                       has_key_change]
