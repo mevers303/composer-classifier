@@ -25,7 +25,7 @@ class MidiMessage():
             self.note += interval
 
 
-class MidiTrack():
+class MidiTrackText():
 
     def __init__(self, track, ticks_transformer, key_sig_transpose):
         """
@@ -38,15 +38,15 @@ class MidiTrack():
 
         self.time_now = 0  # absolute time
         self.open_notes = {}  # {msg.note: MidiMessage}
-        self.track_list = {}  # {start_time: [MidiMessage, ...]}
+        self.track_dict = {}  # {start_time: [MidiMessage, ...]}
         self.track_C_octaves = Counter()
 
         self.track = track
         self.ticks_transformer = ticks_transformer
         self.key_sig_transpose = key_sig_transpose
-    
-    
-    
+
+
+
     def close_note(self, note):
         """
         Moves an open note from open_notes to track_result.
@@ -63,9 +63,9 @@ class MidiTrack():
             this_msg.transpose(self.key_sig_transpose)
             this_msg.duration = self.time_now - this_msg.start_time
 
-            if this_msg.start_time not in self.track_list:
-                self.track_list[this_msg.start_time] = []
-            self.track_list[this_msg.start_time].append(this_msg)
+            if this_msg.start_time not in self.track_dict:
+                self.track_dict[this_msg.start_time] = []
+            self.track_dict[this_msg.start_time].append(this_msg)
 
             del self.open_notes[note]
 
@@ -76,16 +76,16 @@ class MidiTrack():
 
         else:
             print("Note off with no start:", note)
-    
-    
-    
+
+
+
     def close_all_notes(self):
         """
         Loops through open notes and closes them all with self.time_now.
 
         :return: None
         """
-        
+
         # look for still playing notes and close them if all the messages are done
         for key, value in self.open_notes.items():
             print("Note has no end:", key)
@@ -109,13 +109,13 @@ class MidiTrack():
         if most_common_octave != 4:
 
             octave_transpose = (4 - most_common_octave) * 12
-            for start_time, note_list in self.track_list.copy().items():
+            for start_time, note_list in self.track_dict.copy().items():
                 for msg in note_list:
                     msg.transpose(octave_transpose)
 
 
 
-    def to_list(self):
+    def to_dict(self):
         """
         Converts it to a list.
 
@@ -148,17 +148,36 @@ class MidiTrack():
 
         self.close_all_notes()
         # if the track didn't contain any actual notes, only meta
-        if not len(self.track_list.keys()):
+        if not len(self.track_dict.keys()):
             return None
 
         # transpose it to the most common octave
         self.transpose_octavewise()
-        return self.track_list
-        
-        
+        return self.track_dict
 
 
-class MidiVector():
+
+    def to_list(self):
+        """
+        Converts a track into a list of text representations.
+
+        :return: The notes contained within as a list
+        """
+
+        self.to_dict()
+        result = []
+
+        for time, notes in sorted(self.track_dict.items()):
+            step = [midi_to_string(msg.note) + ":" + str(bin_note_duration(msg.duration)) for msg in sorted(notes, key=lambda x: x.note)]
+            result.append(";".join(step))
+
+        return result
+
+
+
+
+
+class MidiFileBase():
 
     def __init__(self, filename, meta_df):
 
@@ -167,6 +186,8 @@ class MidiVector():
 
         self.mid = mido.MidiFile(self.filename)
         self.key_sig_transpose = self.get_keysig_transpose_interval()
+        self.ticks_transformer = TICKS_PER_BEAT / self.mid.ticks_per_beat  # coefficient to convert msg.time
+
 
 
 
@@ -197,7 +218,16 @@ class MidiVector():
 
 
 
-    def tracks_to_list(self):
+
+
+
+class MidiFileText(MidiFileBase):
+
+    def __init__(self, filename, meta_df):
+        MidiFileBase.__init__(self, filename, meta_df)
+
+
+    def to_list(self):
         """
         Converts a mido MidiFile into a list of dictionaries.
         :param mid: A mido.MidiFile object
@@ -205,13 +235,11 @@ class MidiVector():
                  {start_time: [tuple(note, duration, velocity), ...]}
         """
 
-        ticks_transformer = TICKS_PER_BEAT / self.mid.ticks_per_beat  # coefficient to convert msg.time
         result = []
-
 
         for track in self.mid.tracks:
 
-            track_converter = MidiTrack(track, ticks_transformer, self.key_sig_transpose)
+            track_converter = MidiTrackText(track, self.ticks_transformer, self.key_sig_transpose)
             track_result = track_converter.to_list()
 
             if track_result:
@@ -225,5 +253,5 @@ class MidiVector():
 
 if __name__ == "__main__":
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
-    mv = MidiVector("raw_midi/Barrios/Barrios_Estudio_Si_menor.mid", df)
-    l = mv.tracks_to_list()
+    m = MidiFileText("raw_midi/Barber/barber_I.mid", df)
+    l = m.to_list()

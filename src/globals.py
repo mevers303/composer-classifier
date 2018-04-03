@@ -20,6 +20,8 @@ MAXIMUM_WORKS = 200
 NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
 TICKS_PER_BEAT = 1024
+# The resolution of music notes
+NOTE_RESOLUTION = 64
 
 
 
@@ -116,6 +118,19 @@ def get_key_sig(note_dist):
 
 
     return best_match
+
+
+TICK_RESOLUTION = TICKS_PER_BEAT / NOTE_RESOLUTION
+def bin_note_duration(duration):
+
+    binned = int(duration / TICK_RESOLUTION)
+    remainder = duration % TICK_RESOLUTION
+
+    if remainder > TICK_RESOLUTION / 2:
+        binned += 1
+
+    return int(binned * TICK_RESOLUTION)
+
 
 
 
