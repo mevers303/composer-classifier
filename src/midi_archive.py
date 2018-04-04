@@ -285,17 +285,6 @@ def build_all_meta(dir="midi", delete_invalid_files=False):
     # print("JSON file saved!")
 
 
-def get_meta_df(dir="midi"):
-    """
-    Gets a meta dataframe with the proper schema from <dir>.
-
-    :param dir: The base directory of the archive.
-    :return: A pandas dataframe with the metadate.
-    """
-    return pd.read_csv(os.path.join(dir, "meta.csv"), index_col="filename")
-
-
-
 
 
 if __name__ == "__main__":

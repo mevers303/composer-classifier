@@ -3,121 +3,182 @@
 # dataset.py
 # Functions for getting the data set
 
+import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from src.globals import *
-from src.midi_archive import get_meta_df
 from src.midi_processing import MidiFileText
 
 
 
-def get_composers(df):
-    """
-    Returns a list of composers that have at least MINIMUM_WORKS pieces.
+class VectorGetter():
 
-    :param df: meta dataframe
-    :return: A list of composers
-    """
-    composers_df = pd.DataFrame(df.groupby("composer").type.count())
-    composers_df.columns = ["works"]
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.meta_df = None
+        self.composers = None
+        self.X_filenames = None
+        self.y_filenames = None
+        self.last_chunk_i = 0
+        self.n_files = 0
 
-    valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
+        self.label_encoder = None
+        self.onehot_encoder = None
 
-    print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
-    return valid_composers
-
-
-def get_text(composers, df):
-    """
-    Gets a list of tracks for each composer as a text string.
-
-    :param composers: List of composers
-    :param df: meta dataframe
-    :return: <list of tracks as text>, <list of labels>
-    """
-    X_filenames = []
-    y_filenames = []
-
-    for composer in composers:
-
-        composers_works = df[df.composer == composer]
-        if composers_works.composer.count() > MAXIMUM_WORKS:
-            composers_works = composers_works.sample(MAXIMUM_WORKS)
-
-        X_filenames.extend(composers_works.index.values)
-        y_filenames.extend(composers_works.composer.values)
-
-
-    X_text = []
-    y_text = []
-
-    print("Loading MIDI files...")
-    total = len(X_filenames)
-    i = 0
-    for filename, composer in zip(X_filenames, y_filenames):
-
-        text = MidiFileText(filename, df).to_text()
-        X_text.extend(text)
-        y_text.extend([composer] * len(text))
-
-        i += 1
-        progress_bar(i, total)
-
-    label_encoder = LabelEncoder().fit(composers)
-    y_text = label_encoder.transform(y_text).reshape(-1, 1)
-    y_text = OneHotEncoder().fit_transform(y_text)
-
-    return X_text, y_text
+        self.get_meta_df()
+        self.get_composers()
+        self.get_filenames()
 
 
 
-def tokenize(text):
-    """
-    Simple tokenize function to be used in the CountVectorizer
-    :param text: The text to be tokenized
-    :return: A list of tokens
-    """
-    return text.split(" ")
+
+
+    def get_meta_df(self, csv_file = "meta.csv"):
+        """
+        Gets a meta dataframe with the proper schema from <dir>.
+
+        :param csv_file: The name of the csv file.
+        :return: A pandas dataframe with the metadate.
+        """
+        self.meta_df = pd.read_csv(os.path.join(self.base_dir, csv_file), index_col="filename")
+        return self.meta_df
 
 
 
-def get_docs():
-    """
-    Easy wrapper function to get all the docs and their labels
+    def get_composers(self):
+        """
+        Returns a list of composers that have at least MINIMUM_WORKS pieces.
 
-    :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
-    """
+        :return: A list of composers
+        """
+        composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
+        composers_df.columns = ["works"]
 
-    df = get_meta_df("raw_midi")
-    print("All files:   ", df.type.count())
-    df = df[df.type == 1]
-    print("Type 1 files:", df.type.count())
+        valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
 
-    composers = get_composers(df)
-    X_text, y = get_text(composers, df)
+        print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
-    print("Training vectorizer...")
-    vectorizer = CountVectorizer(tokenizer=tokenize, max_features=1000).fit(X_text)
+        self.composers = valid_composers
+        self.label_encoder = LabelEncoder().fit(self.composers)
+        self.onehot_encoder = OneHotEncoder().fit(self.label_encoder.transform(self.composers).reshape(-1, 1))
 
-    print("Transforming corpus...")
-    docs = []
-    max_doc_len = 0
-    for track in X_text:
-        tokens = tokenize(track)
-        docs.append(vectorizer.transform(tokens))
-        track_len = len(tokens)
-        if track_len > max_doc_len:
-            max_doc_len = track_len
+        return valid_composers
 
 
-    n_features = len(vectorizer.get_feature_names())
-    print(len(docs), "individual tracks loaded with", n_features, "unique notes/chords!\nMaximum document length:", max_doc_len)
 
-    return docs, y, composers, n_features, max_doc_len
+    def get_filenames(self):
+        """
+        Gets a list of filenames for each composer and the appropriate label.
 
+        :return: <list of tracks as text>, <list of labels>
+        """
+        self.X_filenames = []
+        self.y_filenames = []
+
+        for composer in self.composers:
+
+            composers_works = self.meta_df[self.meta_df.composer == composer]
+            if composers_works.composer.count() > MAXIMUM_WORKS:
+                composers_works = composers_works.sample(MAXIMUM_WORKS)
+
+            self.X_filenames.extend(composers_works.index.values)
+            self.y_filenames.extend(composers_works.composer.values)
+
+        self.n_files = len(self.X_filenames)
+        print("Found a total of", self.n_files, "MIDI files!")
+
+        return self.X_filenames, self.y_filenames
+
+
+
+    def get_text_chunk(self, X_chunk_filenames, y_chunk_filenames):
+
+        X_text = []
+        y_text = []
+
+
+        print("Loading chunk of MIDI files...")
+        total = len(X_chunk_filenames)
+        complete = 0
+
+        for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
+
+            text = MidiFileText(filename, self.meta_df).to_text()
+            X_text.extend(text)
+            y_text.extend([composer] * len(text))
+
+            self.last_chunk_i += 1
+            complete += 1
+            progress_bar(complete, total)
+
+        y_text = self.label_encoder.transform(y_text).reshape(-1, 1)
+        y_text = self.onehot_encoder.transform(y_text)
+
+        return X_text, y_text
+
+
+    @staticmethod
+    def tokenize(text):
+        """
+        Simple tokenize function to be used in the CountVectorizer
+        :param text: The text to be tokenized
+        :return: A list of tokens
+        """
+        return text.split(" ")
+
+
+
+    def get_docs_chunk(self, chunk_size):
+        """
+        Easy wrapper function to get all the docs and their labels
+
+        :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
+        """
+
+        X_chunk_filenames = self.X_filenames[self.last_chunk_i:self.last_chunk_i + chunk_size]
+        y_chunk_filenames = self.y_filenames[self.last_chunk_i:self.last_chunk_i + chunk_size]
+
+        X_chunk_text, y = self.get_text_chunk(X_chunk_filenames, y_chunk_filenames)
+
+
+        print("Training vectorizer...")
+        vectorizer = CountVectorizer(tokenizer=VectorGetter.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(X_chunk_text)
+
+        print("Transforming corpus...")
+        docs = []
+        # max_doc_len = 0
+        for track in X_chunk_text:
+            tokens = self.tokenize(track)
+            docs.append(vectorizer.transform(tokens))
+            # track_len = len(tokens)
+            # if track_len > max_doc_len:
+            #     max_doc_len = track_len
+
+
+        n_features = len(vectorizer.get_feature_names())
+        print(len(docs), "individual tracks loaded with", n_features, "unique notes/chords!")
+
+        return docs, y, n_features
+
+
+    def train_vectorizer(self):
+
+        vocab = set()
+
+        for file in self.X_filenames:
+
+            mid = MidiFileText(file, self.meta_df)
+            text = mid.to_text()
+
+            for track in text:
+                for step in track.split(" "):
+                    vocab.add(step)
 
 
 if __name__ == "__main__":
-    X, y, composers, n_words, max_doc_len = get_docs()
+
+    getter = VectorGetter("raw_midi")
+    while getter.last_chunk_i < getter.n_files:
+        X, y, features = getter.get_docs_chunk(CHUNK_SIZE)

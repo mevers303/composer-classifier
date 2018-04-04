@@ -22,21 +22,19 @@ from src.dataset import get_docs
 np.random.seed(777)
 
 
-doclen = 250
-
 X, y, composers, n_words, max_doc_len = get_docs()
-X_padded = np.array([sequence.pad_sequences(np.array(x[:doclen,:].T.todense()), maxlen=doclen).T for x in X])
+X_padded = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in X])
 X_train, X_test, y_train, y_test = train_test_split(X_padded, y)
 n_composers = len(composers)
 
 
 
 
-hidden_layer_size = 512
+hidden_layer_size = 1024
 
 # create the model
 model = Sequential()
-model.add(LSTM(units=hidden_layer_size, input_shape=(doclen, n_words)))
+model.add(LSTM(units=hidden_layer_size, input_shape=(NUM_STEPS, n_words)))
 # model.add(LSTM(units=hidden_layer_size, input_shape=(250, n_words)))
 model.add(Dense(units=n_composers, activation='sigmoid'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
