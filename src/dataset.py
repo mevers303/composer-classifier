@@ -5,6 +5,7 @@
 
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from src.globals import *
 from src.midi_archive import get_meta_df
@@ -59,11 +60,14 @@ def get_text(composers, df):
 
         text = MidiFileText(filename, df).to_text()
         X_text.extend(text)
-        y_text.extend([composer] * len(X_text))
+        y_text.extend([composer] * len(text))
 
         i += 1
         progress_bar(i, total)
 
+    label_encoder = LabelEncoder().fit(composers)
+    y_text = label_encoder.transform(y_text).reshape(-1, 1)
+    y_text = OneHotEncoder().fit_transform(y_text)
 
     return X_text, y_text
 
@@ -95,20 +99,25 @@ def get_docs():
     X_text, y = get_text(composers, df)
 
     print("Training vectorizer...")
-    vectorizer = CountVectorizer(tokenizer=tokenize).fit(X_text)
+    vectorizer = CountVectorizer(tokenizer=tokenize, max_features=1000).fit(X_text)
 
     print("Transforming corpus...")
     docs = []
+    max_doc_len = 0
     for track in X_text:
-        docs.append(vectorizer.transform(track.split(" ")))
+        tokens = tokenize(track)
+        docs.append(vectorizer.transform(tokens))
+        track_len = len(tokens)
+        if track_len > max_doc_len:
+            max_doc_len = track_len
 
 
     n_features = len(vectorizer.get_feature_names())
-    print(len(docs), "individual tracks loaded with", n_features, "unique notes/chords!")
+    print(len(docs), "individual tracks loaded with", n_features, "unique notes/chords!\nMaximum document length:", max_doc_len)
 
-    return docs, y, composers, n_features
+    return docs, y, composers, n_features, max_doc_len
 
 
 
 if __name__ == "__main__":
-    X, y, composers, n_words = get_docs()
+    X, y, composers, n_words, max_doc_len = get_docs()
