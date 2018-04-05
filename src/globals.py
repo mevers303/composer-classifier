@@ -27,7 +27,7 @@ MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify
 NUM_STEPS = 250
 # The number of unique features to use in the CountVectorizer.
-TEXT_MAXIMUM_FEATURES = 1500
+TEXT_MAXIMUM_FEATURES = 2000
 # How many midi files to load at once
 CHUNK_SIZE = 50
 
@@ -36,7 +36,7 @@ CHUNK_SIZE = 50
 ####################### CONSTANTS #######################
 #               0     1    2    3     4    5    6     7    8     9    10    11
 MUSIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-KEY_SIGNATURES = [[0, 2, 4, 5, 7, 9, 11],  # C
+KEY_SIGNATURES = [[ 0,  2,  4,  5 , 7,  9, 11],  # C
                   [ 1,  3,  5,  6,  8, 10,  0],  # C#
                   [ 2,  4,  6,  7,  9, 11,  1],  # D
                   [ 3,  5,  7,  8, 10,  0,  2],  # D#

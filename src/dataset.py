@@ -5,6 +5,7 @@
 
 import os
 import pandas as pd
+import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
@@ -24,8 +25,8 @@ class VectorGetter():
         self.last_chunk_i = 0
         self.n_files = 0
 
-        self.label_encoder = None
-        self.onehot_encoder = None
+        self.y_label_encoder = None
+        self.y_onehot_encoder = None
 
         self.get_meta_df()
         self.get_composers()
@@ -61,8 +62,8 @@ class VectorGetter():
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
         self.composers = valid_composers
-        self.label_encoder = LabelEncoder().fit(self.composers)
-        self.onehot_encoder = OneHotEncoder().fit(self.label_encoder.transform(self.composers).reshape(-1, 1))
+        self.y_label_encoder = LabelEncoder().fit(self.composers)
+        self.y_onehot_encoder = OneHotEncoder().fit(self.y_label_encoder.transform(self.composers).reshape(-1, 1))
 
         return valid_composers
 
@@ -93,6 +94,29 @@ class VectorGetter():
 
 
 
+
+class VectorGetterText(VectorGetter):
+    
+    def __init__(self, base_dir = "midi"):
+        super().__init__(base_dir)
+
+        self.vectorizer_pickle = os.path.join(self.base_dir, "text_vectorizer.pkl")
+        self.vectorizer = None
+
+        self.get_vectorizer()
+        self.n_features = len(self.vectorizer.get_feature_names())
+
+
+    def get_vectorizer(self):
+
+        if os.path.exists(self.vectorizer_pickle):
+            print("Loading vectorizer from", self.vectorizer_pickle, "...")
+            with open(self.vectorizer_pickle, "rb") as f:
+                self.vectorizer = pickle.load(f)
+        else:
+            self.train_vectorizer()
+
+
     def get_text_chunk(self, X_chunk_filenames, y_chunk_filenames):
 
         X_text = []
@@ -113,8 +137,8 @@ class VectorGetter():
             complete += 1
             progress_bar(complete, total)
 
-        y_text = self.label_encoder.transform(y_text).reshape(-1, 1)
-        y_text = self.onehot_encoder.transform(y_text)
+        y_text = self.y_label_encoder.transform(y_text).reshape(-1, 1)
+        y_text = self.y_onehot_encoder.transform(y_text)
 
         return X_text, y_text
 
@@ -141,44 +165,52 @@ class VectorGetter():
         y_chunk_filenames = self.y_filenames[self.last_chunk_i:self.last_chunk_i + chunk_size]
 
         X_chunk_text, y = self.get_text_chunk(X_chunk_filenames, y_chunk_filenames)
-
-
-        print("Training vectorizer...")
-        vectorizer = CountVectorizer(tokenizer=VectorGetter.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(X_chunk_text)
-
         print("Transforming corpus...")
         docs = []
         # max_doc_len = 0
         for track in X_chunk_text:
             tokens = self.tokenize(track)
-            docs.append(vectorizer.transform(tokens))
+            docs.append(self.vectorizer.transform(tokens))
             # track_len = len(tokens)
             # if track_len > max_doc_len:
             #     max_doc_len = track_len
 
 
-        n_features = len(vectorizer.get_feature_names())
-        print(len(docs), "individual tracks loaded with", n_features, "unique notes/chords!")
+        print(len(docs), "individual tracks loaded!")
 
-        return docs, y, n_features
+        return docs, y
 
 
     def train_vectorizer(self):
 
+        print("Learning vocabulary...")
         vocab = set()
 
-        for file in self.X_filenames:
-
+        i = 0
+        total = self.meta_df.index.size
+        for file in self.meta_df.index.values:
             mid = MidiFileText(file, self.meta_df)
             text = mid.to_text()
 
             for track in text:
-                for step in track.split(" "):
-                    vocab.add(step)
+                vocab.update(track.split(" "))
+
+            i += 1
+            progress_bar(i, total)
+        
+        vocab = list(vocab)
+
+        print("Fitting vectorizer...")
+        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
+
+        print("Saving", self.vectorizer_pickle, "...")
+        with open(self.vectorizer_pickle, "wb") as f:
+            pickle.dump(self.vectorizer, f)
+
 
 
 if __name__ == "__main__":
 
-    getter = VectorGetter("raw_midi")
+    getter = VectorGetterText("raw_midi")
     while getter.last_chunk_i < getter.n_files:
-        X, y, features = getter.get_docs_chunk(CHUNK_SIZE)
+        X, y = getter.get_docs_chunk(CHUNK_SIZE)
