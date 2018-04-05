@@ -4,12 +4,10 @@
 # Functions for processing MIDI files
 
 import mido
-import numpy as np
 import pandas as pd
 from collections import Counter
-from sklearn.feature_extraction.text import CountVectorizer
 
-from src.globals import *
+from globals import *
 
 
 

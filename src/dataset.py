@@ -9,8 +9,8 @@ import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from src.globals import *
-from src.midi_processing import MidiFileText
+from globals import *
+from midi_processing import MidiFileText
 
 
 
@@ -201,7 +201,7 @@ class VectorGetterText(VectorGetter):
         vocab = list(vocab)
 
         print("Fitting vectorizer...")
-        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
+        self.vectorizer = CountVectorizer(tokenizer=lambda x: x.split(" "), max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
 
         print("Saving", self.vectorizer_pickle, "...")
         with open(self.vectorizer_pickle, "wb") as f:

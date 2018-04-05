@@ -10,7 +10,7 @@ import pandas as pd
 import threading
 import numpy as np
 
-from src.globals import *
+from globals import *
 
 
 
