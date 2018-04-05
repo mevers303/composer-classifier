@@ -45,7 +45,7 @@ progress_bar(dataset.last_test_chunk_i, dataset.n_train_files)
 while dataset.last_train_chunk_i < dataset.n_train_files:
     X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
     model.train_on_batch(X, y)
-    progress_bar(dataset.last_test_chunk_i, dataset.n_train_files)
+    progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
 
 
 print("Saving model to disk")
