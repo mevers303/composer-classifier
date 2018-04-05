@@ -13,7 +13,7 @@ from numpy import argsort
 # How many pieces must a composer have for us to consider them?
 MINIMUM_WORKS = 100
 # How many pieces will we use from each composer?
-MAXIMUM_WORKS = 10
+MAXIMUM_WORKS = 200
 
 ###### HYPER PARAMETERS
 # How many threads to use when parsing the MIDI archive?
@@ -25,9 +25,9 @@ NOTE_RESOLUTION = 32
 # The longest note allowed
 MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify
-NUM_STEPS = 250
+NUM_STEPS = 1000
 # The number of unique features to use in the CountVectorizer.
-TEXT_MAXIMUM_FEATURES = 2000
+TEXT_MAXIMUM_FEATURES = None
 # How many midi files to load at once
 CHUNK_SIZE = 50
 
