@@ -219,14 +219,16 @@ class VectorGetterText(VectorGetter):
         print("Learning vocabulary...")
         vocab = set()
 
+        df = self.meta_df[self.meta_df.composer.isin(self.composers)]
+
         i = 0
-        total = self.meta_df.index.size
-        for file in self.meta_df.index.values:
+        total = df.index.size
+        for file in df.index.values:
             mid = MidiFileText(file, self.meta_df)
             text = mid.to_text()
 
             for track in text:
-                vocab.update(track.split(" "))
+                vocab.update(self.tokenize(track))
 
             i += 1
             progress_bar(i, total)
@@ -234,7 +236,7 @@ class VectorGetterText(VectorGetter):
         vocab = list(vocab)
 
         print("Fitting vectorizer...")
-        self.vectorizer = CountVectorizer(tokenizer=lambda x: x.split(" "), max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
+        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
 
         print("Saving", self.vectorizer_pickle, "...")
         with open(self.vectorizer_pickle, "wb") as f:
