@@ -43,7 +43,7 @@ def create_and_train_model():
     # model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
     # model.add(LSTM(units=HIDDEN_LAYER_SIZE, return_sequences=True))
     # model.add(LSTM(units=HIDDEN_LAYER_SIZE))
-    model.add(Dense(units=dataset.n_composers, activation='sigmoid'))
+    model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
 
@@ -55,7 +55,7 @@ def create_and_train_model():
     for epoch in range(N_EPOCHS):
         print("EPOCH", epoch + 1, "/", N_EPOCHS)
         dataset.reset_chunks()
-        progress_bar(dataset.last_test_chunk_i, dataset.n_train_files)
+        progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
             X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
             model.train_on_batch(X, y)
@@ -81,6 +81,10 @@ def get_model_accuracy(model):
     predictions = None
     actual = None
     first_round = True
+
+    print("Evaluating model...")
+    progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
+
     while dataset.last_test_chunk_i < dataset.n_test_files:
         X, y = dataset.get_docs_chunk(CHUNK_SIZE, "test")
         if first_round:
@@ -90,6 +94,8 @@ def get_model_accuracy(model):
             actual = np.append(actual, y, axis=0)
             predictions = np.append(predictions, model.predict(X), axis=0)
 
+        progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
+
     print(predictions)
 
 
@@ -97,14 +103,15 @@ def get_model_accuracy(model):
     total = actual.shape[0]
     correct = 0
     for y, y_pred in zip(actual, predictions):
-        if np.array_equal(y, y_pred):
+        if np.argmax(y) == np.argmax(y_pred):
             correct += 1
 
     return correct / total
 
 
 
-model = load_model_from_disk()
+model = create_and_train_model()
+# model = load_model_from_disk()
 accuracy = get_model_accuracy(model)
 
 print("Accuracy:", accuracy)
