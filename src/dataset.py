@@ -136,6 +136,8 @@ class VectorGetterText(VectorGetter):
         else:
             self.train_vectorizer()
 
+        print("Loaded a vocabulary of", len(self.vectorizer.get_feature_names()), "features.")
+
 
     def get_text_chunk(self, X_chunk_filenames, y_chunk_filenames):
 
@@ -243,7 +245,3 @@ class VectorGetterText(VectorGetter):
 if __name__ == "__main__":
 
     getter = VectorGetterText("raw_midi")
-    while getter.last_train_chunk_i < getter.n_train_files:
-        X, y = getter.get_docs_chunk(CHUNK_SIZE, "train")
-    while getter.last_test_chunk_i < getter.n_test_files:
-        X, y = getter.get_docs_chunk(CHUNK_SIZE, "test")
