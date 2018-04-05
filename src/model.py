@@ -58,8 +58,8 @@ def create_and_train_model():
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
             X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
-            model.train_on_batch(X, y)
-            progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
+            loss = model.train_on_batch(X, y)
+            progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, str(loss))
         print()  # newline
 
 

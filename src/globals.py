@@ -147,7 +147,7 @@ def bin_note_duration(duration):
 
 
 _PROGRESS_BAR_LAST_I = 100
-def progress_bar(done, total, resolution = 0):
+def progress_bar(done, total, resolution = 0, text = ""):
     """
     Prints a progress bar to stdout.
 
@@ -170,6 +170,8 @@ def progress_bar(done, total, resolution = 0):
         stdout.write("[{}]{}%".format(("-" * int(i / 2) + (">" if i < 100 else "")).ljust(50), str(i).rjust(4)))
         # print the text figures
         stdout.write("({}/{})".format(done, total).rjust(15))
+        if text:
+            stdout.write(" " + text)
         stdout.flush()
 
     if i == 100:
