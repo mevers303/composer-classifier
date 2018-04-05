@@ -33,10 +33,13 @@ model.add(LSTM(units=hidden_layer_size, input_shape=(NUM_STEPS, dataset.n_featur
 model.add(Dense(units=dataset.n_composers, activation='sigmoid'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
 print(model.summary())
-# model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
-while dataset.last_chunk_i < dataset.n_files:
-    X, y = dataset.get_docs_chunk(CHUNK_SIZE)
-    X_padded = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in X])
-    model.train_on_batch(X_padded, y)
 
+# model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
+while dataset.last_train_chunk_i < dataset.n_files:
+    X, y = dataset.get_docs_chunk(CHUNK_SIZE)
+    model.train_on_batch(X, y)
+
+while dataset.last_test_chunk_i < dataset.n_files:
+    X, y = dataset.get_docs_chunk(CHUNK_SIZE)
+    model.train_on_batch(X, y)
 

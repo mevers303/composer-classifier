@@ -6,8 +6,11 @@
 import os
 import pandas as pd
 import pickle
+import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.model_selection import train_test_split
+from keras.preprocessing import sequence
 
 from globals import *
 from midi_processing import MidiFileText
@@ -23,8 +26,14 @@ class VectorGetter():
         self.n_composers = 0
         self.X_filenames = None
         self.y_filenames = None
-        self.last_chunk_i = 0
-        self.n_files = 0
+        self.X_train_filenames = None
+        self.y_train_filenames = None
+        self.X_test_filenames = None
+        self.y_test_filenames = None
+        self.last_train_chunk_i = 0
+        self.last_test_chunk_i = 0
+        self.n_train_files = 0
+        self.n_test_files = 0
 
         self.y_label_encoder = None
         self.y_onehot_encoder = None
@@ -87,8 +96,12 @@ class VectorGetter():
             self.X_filenames.extend(composers_works.index.values)
             self.y_filenames.extend(composers_works.composer.values)
 
-        self.n_files = len(self.X_filenames)
-        print("Found a total of", self.n_files, "MIDI files!")
+
+        self.X_train_filenames, self.X_test_filenames, self.y_train_filenames, self.y_test_filenames = train_test_split(self.X_filenames, self.y_filenames)
+        self.n_train_files = len(self.X_train_filenames)
+        self.n_test_files = len(self.X_test_filenames)
+        print("Found", self.n_train_files, "training and", self.n_test_files, "test MIDI files!")
+
 
         return self.X_filenames, self.y_filenames
 
@@ -133,7 +146,6 @@ class VectorGetterText(VectorGetter):
             X_text.extend(text)
             y_text.extend([composer] * len(text))
 
-            self.last_chunk_i += 1
             complete += 1
             progress_bar(complete, total)
 
@@ -154,17 +166,27 @@ class VectorGetterText(VectorGetter):
 
 
 
-    def get_docs_chunk(self, chunk_size):
+    def get_docs_chunk(self, chunk_size, train_or_test):
         """
         Easy wrapper function to get all the docs and their labels
 
         :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
         """
 
-        X_chunk_filenames = self.X_filenames[self.last_chunk_i:self.last_chunk_i + chunk_size]
-        y_chunk_filenames = self.y_filenames[self.last_chunk_i:self.last_chunk_i + chunk_size]
+        if train_or_test == "train":
+            X_chunk_filenames = self.X_train_filenames[self.last_train_chunk_i:self.last_train_chunk_i + chunk_size]
+            y_chunk_filenames = self.y_train_filenames[self.last_train_chunk_i:self.last_train_chunk_i + chunk_size]
+        else:
+            X_chunk_filenames = self.X_test_filenames[self.last_test_chunk_i:self.last_test_chunk_i + chunk_size]
+            y_chunk_filenames = self.y_test_filenames[self.last_test_chunk_i:self.last_test_chunk_i + chunk_size]
+
 
         X_chunk_text, y = self.get_text_chunk(X_chunk_filenames, y_chunk_filenames)
+        if train_or_test == "train":
+            self.last_train_chunk_i += len(X_chunk_filenames)
+        else:
+            self.last_test_chunk_i += len(X_chunk_filenames)
+
         print("Transforming corpus...")
         docs = []
         # max_doc_len = 0
@@ -175,10 +197,10 @@ class VectorGetterText(VectorGetter):
             # if track_len > max_doc_len:
             #     max_doc_len = track_len
 
+        X = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in docs])
+        print(len(y), "individual tracks loaded!")
 
-        print(len(docs), "individual tracks loaded!")
-
-        return docs, y
+        return X, y
 
 
     def train_vectorizer(self):
@@ -212,5 +234,7 @@ class VectorGetterText(VectorGetter):
 if __name__ == "__main__":
 
     getter = VectorGetterText("raw_midi")
-    while getter.last_chunk_i < getter.n_files:
-        X, y = getter.get_docs_chunk(CHUNK_SIZE)
+    while getter.last_train_chunk_i < getter.n_train_files:
+        X, y = getter.get_docs_chunk(CHUNK_SIZE, "train")
+    while getter.last_test_chunk_i < getter.n_test_files:
+        X, y = getter.get_docs_chunk(CHUNK_SIZE, "test")
