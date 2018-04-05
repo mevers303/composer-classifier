@@ -40,4 +40,5 @@ print(model.summary())
 # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
 while dataset.last_chunk_i < dataset.n_files:
     X, y = dataset.get_docs_chunk(CHUNK_SIZE)
+    X = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in X])
     model.train_on_batch(X, y)
