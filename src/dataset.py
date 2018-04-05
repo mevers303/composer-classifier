@@ -20,6 +20,7 @@ class VectorGetter():
         self.base_dir = base_dir
         self.meta_df = None
         self.composers = None
+        self.n_composers = 0
         self.X_filenames = None
         self.y_filenames = None
         self.last_chunk_i = 0
@@ -31,8 +32,6 @@ class VectorGetter():
         self.get_meta_df()
         self.get_composers()
         self.get_filenames()
-
-
 
 
 
@@ -62,6 +61,7 @@ class VectorGetter():
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
         self.composers = valid_composers
+        self.n_composers = len(valid_composers)
         self.y_label_encoder = LabelEncoder().fit(self.composers)
         self.y_onehot_encoder = OneHotEncoder().fit(self.y_label_encoder.transform(self.composers).reshape(-1, 1))
 
