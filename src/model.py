@@ -29,7 +29,7 @@ hidden_layer_size = 1024
 # create the model
 model = Sequential()
 model.add(LSTM(units=hidden_layer_size, input_shape=(NUM_STEPS, dataset.n_features)))
-model.add(LSTM(units=hidden_layer_size, input_shape=(NUM_STEPS, dataset.n_features)))
+# model.add(LSTM(units=hidden_layer_size, input_shape=(NUM_STEPS, dataset.n_features)))
 model.add(Dense(units=dataset.n_composers, activation='sigmoid'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
 print(model.summary())
