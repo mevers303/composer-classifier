@@ -30,6 +30,10 @@ NUM_STEPS = 1000
 TEXT_MAXIMUM_FEATURES = None
 # How many midi files to load at once
 CHUNK_SIZE = 50
+# How many epochs to train for?
+N_EPOCHS = 5
+# The nodes in each hidden layer
+HIDDEN_LAYER_SIZE = 1024
 
 
 

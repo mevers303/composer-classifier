@@ -44,6 +44,13 @@ class VectorGetter():
 
 
 
+    def reset_chunks(self):
+        self.last_train_chunk_i = 0
+        self.last_test_chunk_i = 0
+
+
+
+
     def get_meta_df(self, csv_file = "meta.csv"):
         """
         Gets a meta dataframe with the proper schema from <dir>.
