@@ -83,14 +83,12 @@ def get_model_accuracy(model):
     first_round = True
     while dataset.last_test_chunk_i < dataset.n_test_files:
         X, y = dataset.get_docs_chunk(CHUNK_SIZE, "test")
-        print(y)
         if first_round:
-            actual = np.append(actual, y, axis=0)
-            predictions = np.append(predictions, model.predict(X), axis=0)
-            first_round = False
-        else:
             actual = y
             predictions = model.predict(X)
+        else:
+            actual = np.append(actual, y, axis=0)
+            predictions = np.append(predictions, model.predict(X), axis=0)
 
     print(predictions)
 
