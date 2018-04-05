@@ -23,7 +23,6 @@ np.random.seed(777)
 
 
 
-
 hidden_layer_size = 1024
 
 # create the model
@@ -41,9 +40,12 @@ print(model.summary())
 
 # FIT THE MODEL
 # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
+print("Training model...")
+progress_bar(dataset.last_test_chunk_i, dataset.n_train_files)
 while dataset.last_train_chunk_i < dataset.n_train_files:
     X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
     model.train_on_batch(X, y)
+    progress_bar(dataset.last_test_chunk_i, dataset.n_train_files)
 
 
 print("Saving model to disk")
@@ -60,11 +62,13 @@ model.save_weights("model.h5")
 # MAKE PREDICTIONS
 predictions = None
 actual = None
+first_round = True
 while dataset.last_test_chunk_i < dataset.n_test_files:
     X, y = dataset.get_docs_chunk(CHUNK_SIZE, "test")
-    if actual != None:
+    if first_round:
         actual = np.append(actual, y, axis=0)
         predictions = np.append(predictions, model.predict(X), axis=0)
+        first_round = False
     else:
         actual = y
         predictions = model.predict(X)

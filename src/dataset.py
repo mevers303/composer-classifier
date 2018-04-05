@@ -136,7 +136,7 @@ class VectorGetterText(VectorGetter):
         y_text = []
 
 
-        print("Loading chunk of MIDI files...")
+        # print("Loading chunk of MIDI files...")
         total = len(X_chunk_filenames)
         complete = 0
 
@@ -147,7 +147,7 @@ class VectorGetterText(VectorGetter):
             y_text.extend([composer] * len(text))
 
             complete += 1
-            progress_bar(complete, total)
+            # progress_bar(complete, total)
 
         y_text = self.y_label_encoder.transform(y_text).reshape(-1, 1)
         y_text = self.y_onehot_encoder.transform(y_text).todense()
@@ -189,7 +189,7 @@ class VectorGetterText(VectorGetter):
         else:
             self.last_test_chunk_i += len(X_chunk_filenames)
 
-        print("Transforming corpus...")
+        # print("Transforming corpus...")
         docs = []
         # max_doc_len = 0
         for track in X_chunk_text:
@@ -200,7 +200,7 @@ class VectorGetterText(VectorGetter):
             #     max_doc_len = track_len
 
         X = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in docs])
-        print(len(y), "individual tracks loaded!")
+        # print(len(y), "individual tracks loaded!")
 
         return X, y
 
