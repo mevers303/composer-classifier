@@ -138,7 +138,7 @@ class VectorGetterText(VectorGetter):
             progress_bar(complete, total)
 
         y_text = self.y_label_encoder.transform(y_text).reshape(-1, 1)
-        y_text = self.y_onehot_encoder.transform(y_text)
+        y_text = self.y_onehot_encoder.transform(y_text).todense()
 
         return X_text, y_text
 
