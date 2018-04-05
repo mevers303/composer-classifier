@@ -176,9 +176,11 @@ class VectorGetterText(VectorGetter):
         if train_or_test == "train":
             X_chunk_filenames = self.X_train_filenames[self.last_train_chunk_i:self.last_train_chunk_i + chunk_size]
             y_chunk_filenames = self.y_train_filenames[self.last_train_chunk_i:self.last_train_chunk_i + chunk_size]
-        else:
+        elif train_or_test == "test":
             X_chunk_filenames = self.X_test_filenames[self.last_test_chunk_i:self.last_test_chunk_i + chunk_size]
             y_chunk_filenames = self.y_test_filenames[self.last_test_chunk_i:self.last_test_chunk_i + chunk_size]
+        else:
+            raise ValueError("train_or_test must be either 'train' or 'test'.")
 
 
         X_chunk_text, y = self.get_text_chunk(X_chunk_filenames, y_chunk_filenames)
