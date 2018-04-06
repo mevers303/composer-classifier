@@ -166,7 +166,7 @@ class VectorGetter():
 
 
 
-    def get_all(self, chunk_size, train_or_test):
+    def get_all(self, train_or_test):
         """
         Easy wrapper function to get all the docs and their labels
 
@@ -174,11 +174,11 @@ class VectorGetter():
         """
 
         if train_or_test == "train":
-            X_chunk_filenames = self.X_train_filenames
-            y_chunk_filenames = self.y_train_filenames
+            X_filenames = self.X_train_filenames
+            y_filenames = self.y_train_filenames
         elif train_or_test == "test":
-            X_chunk_filenames = self.X_test_filenames
-            y_chunk_filenames = self.y_test_filenames
+            X_filenames = self.X_test_filenames
+            y_filenames = self.y_test_filenames
         else:
             raise ValueError("train_or_test must be either 'train' or 'test'.")
 
@@ -186,11 +186,12 @@ class VectorGetter():
         y = []
 
         complete = 0
-        total = len(X_chunk_filenames)
+        total = len(X_filenames)
         print("\nLoading MIDI files...")
         progress_bar(complete, total)
 
-        for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
+
+        for filename, composer in zip(X_filenames, y_filenames):
 
             X_file = self.file_converter(filename, self.meta_df).to_X()
             X.extend(X_file)
@@ -205,10 +206,8 @@ class VectorGetter():
                 progress_bar(complete, total)
 
 
-
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = self.y_onehot_encoder.transform(y).todense()
-
 
 
         X = np.array(X)
@@ -302,8 +301,4 @@ class VectorGetterNHot(VectorGetter):
 if __name__ == "__main__":
 
     dataset = VectorGetterNHot("raw_midi")
-    progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
-    while dataset.last_train_chunk_i < dataset.n_train_files:
-        X, y = dataset.get_chunk(BATCH_SIZE, "train")
-        progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
-
+    X, y = dataset.get_all("train")
