@@ -155,7 +155,7 @@ class VectorGetter():
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
-        y = self.y_onehot_encoder.transform(y).todense(dtype=np.int32)
+        y = self.y_onehot_encoder.transform(y).todense().astype(np.int32)
 
 
 
@@ -193,7 +193,7 @@ class VectorGetter():
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
-        y = self.y_onehot_encoder.transform(y).todense(dtype=np.int32)
+        y = self.y_onehot_encoder.transform(y).todense().astype(np.int32)
         X = np.array(X, dtype=np.int32)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y)
