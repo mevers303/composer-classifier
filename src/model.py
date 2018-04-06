@@ -152,7 +152,7 @@ def get_model_accuracy(model):
 
 
 model = create_model()
-model = batch_fit_model(model)
+model = all_fit_model(model)
 save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
 # model = load_model_from_disk()
 accuracy = get_model_accuracy(model)
