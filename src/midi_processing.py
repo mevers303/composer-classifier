@@ -5,6 +5,7 @@
 
 import mido
 import pandas as pd
+import numpy as np
 from collections import Counter
 
 from globals import *
@@ -27,7 +28,7 @@ class MidiMessage():
 
 
 
-class MidiTrackText():
+class MidiTrack():
 
     def __init__(self, track, ticks_transformer, key_sig_transpose):
         """
@@ -169,7 +170,15 @@ class MidiTrackText():
 
 
 
-    def to_text(self):
+
+class MidiTrackText(MidiTrack):
+
+    def __init__(self, track, ticks_transformer, key_sig_transpose):
+        super().__init__(track, ticks_transformer, key_sig_transpose)
+
+
+
+    def to_sequence(self):
         """
         Converts a track into a list of text representations.
 
@@ -196,6 +205,58 @@ class MidiTrackText():
             result += " DRUM_TRACK_END"
 
         return result
+
+
+
+
+class MidiTrackNHot(MidiTrack):
+
+    def __init__(self, track, ticks_transformer, key_sig_transpose):
+        super().__init__(track, ticks_transformer, key_sig_transpose)
+
+
+
+    def to_sequence(self):
+
+        self.to_dict()
+
+        if not self.track_dict:
+            return None
+
+        empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
+
+        if self.channel != 10:
+            first = empty.copy()
+            first[-2] = 1
+            result = [first]
+        else:
+            first = empty.copy()
+            first[-4] = 1
+            result = [first]
+
+        for time, notes in sorted(self.track_dict.items()):
+
+            n_hot = empty.copy()
+
+            for msg in notes:
+                n_hot[msg.note] = 1
+                duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
+                n_hot[128 + duration] = 1
+
+            result.append(n_hot)
+
+        if self.channel != 10:
+            last = empty.copy()
+            last[-1] = 1
+            result.append([last])
+        else:
+            last = empty.copy()
+            last[-3] = 1
+            result.append([last])
+
+        return result
+
+
 
 
 
@@ -262,7 +323,7 @@ class MidiFileText(MidiFileBase):
         for track in self.mid.tracks:
 
             track_converter = MidiTrackText(track, self.ticks_transformer, self.key_sig_transpose)
-            track_result = track_converter.to_text()
+            track_result = track_converter.to_sequence()
 
             if track_result:
                 self.text_list.append(track_result)
@@ -277,6 +338,5 @@ class MidiFileText(MidiFileBase):
 if __name__ == "__main__":
     file = "raw_midi/Arcas/Arcas_Fagot_.mid"
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
-    m = MidiFileText(file, df)
     mid = mido.MidiFile(file)
-    t = m.to_text()
+    t = MidiTrackNHot(mid.tracks[1])

@@ -246,4 +246,7 @@ class VectorGetterText(VectorGetter):
 
 if __name__ == "__main__":
 
-    getter = VectorGetterText("raw_midi")
+    dataset = VectorGetterText("raw_midi")
+    while dataset.last_train_chunk_i < dataset.n_train_files:
+        X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
+        progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
