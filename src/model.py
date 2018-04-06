@@ -49,7 +49,7 @@ def create_and_train_model():
     # FIT THE MODEL
     # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
     print("Training model...")
-    with open("model_log.txt") as f:
+    with open("model_log.txt", "a") as f:
         f.write("***MODEL***\n")
         f.write("Neurons: " + HIDDEN_LAYER_SIZE + "\n")
         f.write("Layers: 2\n")
