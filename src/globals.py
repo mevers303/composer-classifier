@@ -175,6 +175,6 @@ def progress_bar(done, total, resolution = 0, text = ""):
         stdout.flush()
 
     if i == 100:
-        print("\nComplete!")
+        print("\n")
 
     _PROGRESS_BAR_LAST_I = i

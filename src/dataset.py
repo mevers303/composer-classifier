@@ -135,7 +135,7 @@ class VectorGetter():
         complete = 0
         total = len(X_chunk_filenames)
         print("\nLoading MIDI files...")
-        print(y_chunk_filenames)
+        progress_bar(complete, total)
 
         for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
 
