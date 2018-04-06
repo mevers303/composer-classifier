@@ -67,11 +67,11 @@ def batch_fit_model(model):
             X, y = dataset.get_chunk(BATCH_SIZE, "train")
             loss = model.train_on_batch(X, y)
             progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
-            with open("model_log.txt") as f:
+            with open("model_log.txt", "a") as f:
                 f.write("EPOCH {}: {}\n".format(epoch, loss))
 
 
-        with open("model_log.txt") as f:
+        with open("model_log.txt", "a") as f:
             f.write("\n")
         print()  # newline
 
