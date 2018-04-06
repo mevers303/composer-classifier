@@ -301,8 +301,4 @@ class VectorGetterNHot(VectorGetter):
 if __name__ == "__main__":
 
     dataset = VectorGetterNHot("raw_midi")
-    progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
-    while dataset.last_train_chunk_i < dataset.n_train_files:
-        X, y = dataset.get_chunk(BATCH_SIZE, "train")
-        progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
-
+    X, y = dataset.get_all("train")
