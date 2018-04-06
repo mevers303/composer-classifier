@@ -341,9 +341,14 @@ class MidiFileBase:
 
             if type(track_result) == csr_matrix:
                 track_result = np.array(track_result.todense())
-            chunks = np.array_split(track_result, NUM_STEPS)
+            else:
+                track_result = np.array(track_result)
+
+            partitions = int(track_result.shape[0] / NUM_STEPS) + 1
+            chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]
+
             for chunk in chunks:
-                chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS).T
+                chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T
                 X.append(chunk)
 
         return X
