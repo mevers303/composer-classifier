@@ -9,9 +9,9 @@ from keras.layers import LSTM, Dense
 
 
 from globals import *
-from dataset import VectorGetterText
+from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterText("raw_midi")
+dataset = VectorGetterNHot("raw_midi")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -34,7 +34,7 @@ def load_model_from_disk():
 
 
 
-def create_and_train_model():
+def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
@@ -45,6 +45,11 @@ def create_and_train_model():
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
 
+    return model
+
+
+
+def batch_fit_model(model):
 
     # FIT THE MODEL
     # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
@@ -70,16 +75,19 @@ def create_and_train_model():
             f.write("\n")
         print()  # newline
 
+        return model
+
+
+
+def save_model(model, filename):
 
     print("Saving model to disk")
     # serialize model to JSON
     model_json = model.to_json()
-    with open("model.json", "w") as json_file:
+    with open(filename + ".json", "w") as json_file:
         json_file.write(model_json)
     # serialize weights to HDF5
-    model.save_weights("model.h5")
-
-    return model
+    model.save_weights(filename + "model.h5")
 
 
 
@@ -120,7 +128,9 @@ def get_model_accuracy(model):
 
 
 
-model = create_and_train_model()
+model = create_model()
+model = batch_fit_model(model)
+save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
 # model = load_model_from_disk()
 accuracy = get_model_accuracy(model)
 

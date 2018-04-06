@@ -295,6 +295,7 @@ class VectorGetterNHot(VectorGetter):
 
     def __init__(self, base_dir="midi"):
         super().__init__(base_dir, MidiFileNHot)
+        self.n_features = 128 + 4
 
 
 
