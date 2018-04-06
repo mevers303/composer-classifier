@@ -11,7 +11,7 @@ from keras.layers import LSTM, Dense
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterNHot("raw_midi")
+dataset = VectorGetterText("raw_midi")
 
 # fix random seed for reproducibility
 np.random.seed(777)
