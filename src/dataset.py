@@ -104,7 +104,6 @@ class VectorGetter():
 
 
         self.X_train_filenames, self.X_test_filenames, self.y_train_filenames, self.y_test_filenames = train_test_split(self.X_filenames, self.y_filenames)
-        print(self.y_filenames)
         self.n_train_files = len(self.X_train_filenames)
         self.n_test_files = len(self.X_test_filenames)
         print("Found", self.n_train_files, "training and", self.n_test_files, "test MIDI files!")
@@ -139,15 +138,19 @@ class VectorGetter():
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
+            if train_or_test == "train":
+                self.last_train_chunk_i += 1
+                progress_bar(self.last_train_chunk_i, len(X_chunk_filenames))
+            elif train_or_test == "test":
+                self.last_test_chunk_i += 1
+                progress_bar(self.last_test_chunk_i, len(X_chunk_filenames))
+
+
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = self.y_onehot_encoder.transform(y).todense()
 
 
-        if train_or_test == "train":
-            self.last_train_chunk_i += len(X_chunk_filenames)
-        else:
-            self.last_test_chunk_i += len(X_chunk_filenames)
 
 
 
@@ -234,6 +237,7 @@ class VectorGetterText(VectorGetter):
 if __name__ == "__main__":
 
     dataset = VectorGetterText("raw_midi")
+    progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
     while dataset.last_train_chunk_i < dataset.n_train_files:
         X, y = dataset.get_chunk(CHUNK_SIZE, "train")
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)

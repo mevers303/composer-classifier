@@ -224,7 +224,6 @@ class MidiTrackText(MidiTrack):
             return None
 
         result = self.vectorizer.transform(text)
-        result = sequence.pad_sequences(np.array(result[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T
 
         return result
 
@@ -338,10 +337,20 @@ class MidiFileBase:
             track_result = track_converter.to_sequence()
 
             try:
-                if track_result != None:
-                    X.append(track_result)
+                if track_result == None:
+                    continue
+                else:
+                    track_result = np.array(track_result.todense())
+                    chunks = np.array_split(track_result, NUM_STEPS)
+                    for chunk in chunks:
+                        chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS).T
+                        X.append(chunk)
             except ValueError:
-                X.append(track_result)
+                track_result = np.array(track_result)
+                chunks = np.array_split(track_result, NUM_STEPS, axis=0)
+                for chunk in chunks:
+                    chunk = sequence.pad_sequences(chunk.T.todense(), maxlen=NUM_STEPS).T
+                    X.append(chunk)
 
         return X
 
