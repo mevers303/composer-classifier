@@ -286,6 +286,8 @@ class VectorGetterNHot(VectorGetter):
     def get_all_split(self, reload=False):
 
         pickle_file = os.path.join(self.base_dir, "n-hot.pkl")
+        if not os.path.exists(pickle_file):
+            reload = True
 
         if not reload:
             with open(pickle_file, "rb") as f:
