@@ -33,7 +33,7 @@ BATCH_SIZE = 78
 # How many epochs to train for?
 N_EPOCHS = 100
 # The nodes in each hidden layer
-HIDDEN_LAYER_SIZE = 512
+HIDDEN_LAYER_SIZE = 256
 
 
 
