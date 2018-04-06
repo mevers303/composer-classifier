@@ -166,12 +166,20 @@ class VectorGetter():
 
 
 
-    def get_all_split(self):
+    def get_all_split(self, reload=False):
         """
         Easy wrapper function to get all the docs and their labels
 
         :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
         """
+
+        pickle_file = os.path.join(self.base_dir, "n-hot.pkl")
+
+        if not reload:
+            with open(pickle_file, "rb") as f:
+                X_train, X_test, y_train, y_test = pickle.load(pickle_file)
+                return X_train, X_test, y_train, y_test
+
 
         X = []
         y = []
@@ -197,6 +205,11 @@ class VectorGetter():
         X = np.array(X, dtype=np.int32)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+
+        with open(pickle_file, "wb") as f:
+            pickle.dump((X_train, X_test, y_train, y_test), f)
+
         return X_train, X_test, y_train, y_test
 
 
@@ -278,7 +291,7 @@ class VectorGetterNHot(VectorGetter):
 
     def __init__(self, base_dir="midi"):
         super().__init__(base_dir, MidiFileNHot)
-        self.n_features = 128 + 4
+        self.n_features = 128 + 4 + NOTE_RESOLUTION
 
 
 
