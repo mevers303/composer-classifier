@@ -245,8 +245,7 @@ class MidiTrackNHot(MidiTrack):
         if not self.track_dict:
             return None
 
-        # empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
-        empty = np.zeros(128 + 4)
+        empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
 
         if self.channel != 10:
             first = empty.copy()
@@ -263,8 +262,8 @@ class MidiTrackNHot(MidiTrack):
 
             for msg in notes:
                 n_hot[msg.note] = 1
-                # duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
-                # n_hot[128 + duration] = 1
+                duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
+                n_hot[128 + 4 + duration] = 1
 
             result.append(n_hot)
 

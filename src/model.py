@@ -39,8 +39,8 @@ def create_model():
     # CREATE THE MODEL
     model = Sequential()
     model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
-    model.add(LSTM(units=HIDDEN_LAYER_SIZE, return_sequences=True))
-    model.add(LSTM(units=HIDDEN_LAYER_SIZE))
+    model.add(LSTM(units=(HIDDEN_LAYER_SIZE / 2), return_sequences=True))
+    model.add(LSTM(units=(HIDDEN_LAYER_SIZE / 4)))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
