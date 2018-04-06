@@ -80,9 +80,7 @@ def batch_fit_model(model):
 
 def all_fit_model(model):
 
-    dataset.reset_chunks()
-    X_train, y_train = dataset.get_all("train")
-    X_test, y_test = dataset.get_all("test")
+    X_train, X_test, y_train, y_test = dataset.get_all_split()
 
     # FIT THE MODEL
     print("Training model...")
@@ -151,10 +149,13 @@ def get_model_accuracy(model):
 
 
 
-model = create_model()
-model = all_fit_model(model)
-save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
-# model = load_model_from_disk()
-accuracy = get_model_accuracy(model)
 
-print("Accuracy:", accuracy)
+if __name__ == "__main__":
+
+    model = create_model()
+    model = all_fit_model(model)
+    save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
+    # model = load_model_from_disk()
+    accuracy = get_model_accuracy(model)
+
+    print("Accuracy:", accuracy)

@@ -166,54 +166,38 @@ class VectorGetter():
 
 
 
-    def get_all(self, train_or_test):
+    def get_all_split(self):
         """
         Easy wrapper function to get all the docs and their labels
 
         :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
         """
 
-        if train_or_test == "train":
-            X_filenames = self.X_train_filenames
-            y_filenames = self.y_train_filenames
-        elif train_or_test == "test":
-            X_filenames = self.X_test_filenames
-            y_filenames = self.y_test_filenames
-        else:
-            raise ValueError("train_or_test must be either 'train' or 'test'.")
-
         X = []
         y = []
 
         complete = 0
-        total = len(X_filenames)
+        total = len(self.X_filenames)
         print("\nLoading MIDI files...")
         progress_bar(complete, total)
 
 
-        for filename, composer in zip(X_filenames, y_filenames):
+        for filename, composer in zip(self.X_filenames, self.y_filenames):
 
             X_file = self.file_converter(filename, self.meta_df).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
             complete += 1
-            if train_or_test == "train":
-                self.last_train_chunk_i += 1
-                progress_bar(complete, total)
-            elif train_or_test == "test":
-                self.last_test_chunk_i += 1
-                progress_bar(complete, total)
+            progress_bar(complete, total)
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = self.y_onehot_encoder.transform(y).todense()
-
-
         X = np.array(X)
-        # print(len(y), "individual tracks loaded!")
 
-        return X, y
+        X_train, X_test, y_train, y_test = train_test_split(X, y)
+        return X_train, X_test, y_train, y_test
 
 
 
