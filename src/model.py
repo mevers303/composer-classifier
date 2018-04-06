@@ -11,7 +11,7 @@ from keras.layers import LSTM, Dense
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterText("raw_midi")
+dataset = VectorGetterNHot("raw_midi")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -52,7 +52,6 @@ def create_model():
 def batch_fit_model(model):
 
     # FIT THE MODEL
-    # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
     print("Training model...")
     with open("model_log.txt", "a") as f:
         f.write("***MODEL***\n")
@@ -76,6 +75,30 @@ def batch_fit_model(model):
         print()  # newline
 
         return model
+
+
+
+def all_fit_model(model):
+
+    dataset.reset_chunks()
+    X_train, y_train = dataset.get_all("train")
+    X_test, y_test = dataset.get_all("test")
+
+    # FIT THE MODEL
+    print("Training model...")
+    with open("model_log.txt", "a") as f:
+        f.write("***MODEL***\n")
+        f.write("Neurons: " + str(HIDDEN_LAYER_SIZE) + "\n")
+        f.write("Layers: 2\n")
+
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+
+    with open("model_log.txt", "a") as f:
+        f.write(str(history))
+        f.write("\n\n")
+    print()  # newline
+
+    return model
 
 
 
