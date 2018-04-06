@@ -218,7 +218,7 @@ class VectorGetterText(VectorGetter):
             text = mid.to_text()
 
             for track in text:
-                vocab.update(self.tokenize(track))
+                vocab.update(track)
 
             i += 1
             progress_bar(i, total)
