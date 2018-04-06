@@ -134,6 +134,7 @@ class VectorGetter():
 
         complete = 0
         total = len(X_chunk_filenames)
+        print("Loading MIDI files...")
 
         for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
 
@@ -144,10 +145,10 @@ class VectorGetter():
             complete += 1
             if train_or_test == "train":
                 self.last_train_chunk_i += 1
-                # progress_bar(complete, total)
+                progress_bar(complete, total)
             elif train_or_test == "test":
                 self.last_test_chunk_i += 1
-                # progress_bar(complete, total)
+                progress_bar(complete, total)
 
 
 

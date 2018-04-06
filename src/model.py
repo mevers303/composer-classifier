@@ -49,6 +49,10 @@ def create_and_train_model():
     # FIT THE MODEL
     # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3, batch_size=64)
     print("Training model...")
+    with open("model_log.txt") as f:
+        f.write("***MODEL***\n")
+        f.write("Neurons: " + HIDDEN_LAYER_SIZE + "\n")
+        f.write("Layers: 2\n")
 
     for epoch in range(N_EPOCHS):
         print("EPOCH", epoch + 1, "/", N_EPOCHS)
@@ -58,6 +62,12 @@ def create_and_train_model():
             X, y = dataset.get_chunk(BATCH_SIZE, "train")
             loss = model.train_on_batch(X, y)
             progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
+            with open("model_log.txt") as f:
+                f.write("EPOCH {}: {}\n".format(epoch, loss))
+
+
+        with open("model_log.txt") as f:
+            f.write("\n")
         print()  # newline
 
 
@@ -92,7 +102,9 @@ def get_model_accuracy(model):
             actual = np.append(actual, y, axis=0)
             predictions = np.append(predictions, model.predict(X), axis=0)
 
+        print("Epoch progress:")
         progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
+        print()
 
     print(predictions)
 
