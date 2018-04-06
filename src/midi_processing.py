@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 from collections import Counter
 
+from keras.preprocessing import sequence
+
 from globals import *
 
 
@@ -173,12 +175,13 @@ class MidiTrack():
 
 class MidiTrackText(MidiTrack):
 
+    vectorizer = None
+
     def __init__(self, track, ticks_transformer, key_sig_transpose):
         super().__init__(track, ticks_transformer, key_sig_transpose)
 
 
-
-    def to_sequence(self):
+    def to_text(self):
         """
         Converts a track into a list of text representations.
 
@@ -191,18 +194,37 @@ class MidiTrackText(MidiTrack):
             return None
 
         if self.channel != 10:
-            result = "TRACK_START"
+            result = ["TRACK_START"]
         else:
-            result = "DRUM_TRACK_START"
+            result = ["DRUM_TRACK_START"]
 
         for time, notes in sorted(self.track_dict.items()):
             step = [midi_to_string(msg.note) + ":" + str(bin_note_duration(msg.duration)) for msg in sorted(notes, key=lambda x: x.note)]
-            result += " " + ";".join(step)
+            result.append(";".join(step))
 
         if self.channel != 10:
-            result += " TRACK_END"
+            result.append("TRACK_END")
         else:
-            result += " DRUM_TRACK_END"
+            result.append("DRUM_TRACK_END")
+
+
+        return result
+
+
+    def to_sequence(self):
+        """
+        Converts a track into a list of text representations.
+
+        :return: The notes contained within as a list
+        """
+
+        text = self.to_text()
+
+        if not text:
+            return None
+
+        result = self.vectorizer.transform(text)
+        result = sequence.pad_sequences(np.array(result[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T
 
         return result
 
@@ -261,9 +283,9 @@ class MidiTrackNHot(MidiTrack):
 
 
 
-class MidiFileBase():
+class MidiFileBase:
 
-    def __init__(self, filename, meta_df):
+    def __init__(self, filename, meta_df, track_converter):
 
         self.filename = filename
         self.meta_df = meta_df
@@ -272,6 +294,8 @@ class MidiFileBase():
         self.key_sig_transpose = self.get_keysig_transpose_interval()
         self.ticks_transformer = TICKS_PER_BEAT / self.mid.ticks_per_beat  # coefficient to convert msg.time
 
+        self.track_converter = track_converter
+
 
 
 
@@ -279,11 +303,8 @@ class MidiFileBase():
         """
         Gets the transpose interval for a filename from the meta dataframe.
 
-        :param filename: Path to a midi file
         :return: The interval to use to transpose this file to the correct key signature.
         """
-
-        transpose_interval = 0
 
         row = self.meta_df.loc[self.filename]
 
@@ -302,33 +323,56 @@ class MidiFileBase():
 
 
 
+    def to_X(self):
+        """
+        Converts a mido MidiFile into a list of dictionaries.
+        :return: A list of dictionaries.  Each dictionary represents a track.  The dictionaries are in the format
+                 {start_time: [tuple(note, duration, velocity), ...]}
+        """
+
+        X = []
+
+        for track in self.mid.tracks:
+
+            track_converter = self.track_converter(track, self.ticks_transformer, self.key_sig_transpose)
+            track_result = track_converter.to_sequence()
+
+            try:
+                if track_result != None:
+                    X.append(track_result)
+            except ValueError:
+                X.append(track_result)
+
+        return X
+
+
+
 
 class MidiFileText(MidiFileBase):
 
+
     def __init__(self, filename, meta_df):
-        MidiFileBase.__init__(self, filename, meta_df)
-        self.text_list = None
+        MidiFileBase.__init__(self, filename, meta_df, MidiTrackText)
 
 
     def to_text(self):
         """
         Converts a mido MidiFile into a list of dictionaries.
-        :param mid: A mido.MidiFile object
         :return: A list of dictionaries.  Each dictionary represents a track.  The dictionaries are in the format
                  {start_time: [tuple(note, duration, velocity), ...]}
         """
 
-        self.text_list = []
+        result = []
 
         for track in self.mid.tracks:
 
             track_converter = MidiTrackText(track, self.ticks_transformer, self.key_sig_transpose)
-            track_result = track_converter.to_sequence()
+            track_result = track_converter.to_text()
 
             if track_result:
-                self.text_list.append(track_result)
+                result.append(track_result)
 
-        return self.text_list
+        return result
 
 
 
@@ -339,4 +383,4 @@ if __name__ == "__main__":
     file = "raw_midi/Arcas/Arcas_Fagot_.mid"
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiTrackNHot(mid.tracks[1])
+    t = MidiTrackText(mid.tracks[1], 1, 0)

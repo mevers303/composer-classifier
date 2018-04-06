@@ -11,9 +11,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from keras.preprocessing import sequence
+import mido
 
 from globals import *
-from midi_processing import MidiFileText
+from midi_processing import MidiFileText, MidiTrackText
 
 
 
@@ -105,6 +106,7 @@ class VectorGetter():
 
 
         self.X_train_filenames, self.X_test_filenames, self.y_train_filenames, self.y_test_filenames = train_test_split(self.X_filenames, self.y_filenames)
+        print(self.y_filenames)
         self.n_train_files = len(self.X_train_filenames)
         self.n_test_files = len(self.X_test_filenames)
         print("Found", self.n_train_files, "training and", self.n_test_files, "test MIDI files!")
@@ -114,68 +116,7 @@ class VectorGetter():
 
 
 
-
-class VectorGetterText(VectorGetter):
-    
-    def __init__(self, base_dir = "midi"):
-        super().__init__(base_dir)
-
-        self.vectorizer_pickle = os.path.join(self.base_dir, "text_vectorizer.pkl")
-        self.vectorizer = None
-
-        self.get_vectorizer()
-        self.n_features = len(self.vectorizer.get_feature_names())
-
-
-    def get_vectorizer(self):
-
-        if os.path.exists(self.vectorizer_pickle):
-            print("Loading vectorizer from", self.vectorizer_pickle, "...")
-            with open(self.vectorizer_pickle, "rb") as f:
-                self.vectorizer = pickle.load(f)
-        else:
-            self.train_vectorizer()
-
-        print("Loaded a vocabulary of", len(self.vectorizer.get_feature_names()), "features.")
-
-
-    def get_text_chunk(self, X_chunk_filenames, y_chunk_filenames):
-
-        X_text = []
-        y_text = []
-
-
-        # print("Loading chunk of MIDI files...")
-        total = len(X_chunk_filenames)
-        complete = 0
-
-        for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
-
-            text = MidiFileText(filename, self.meta_df).to_text()
-            X_text.extend(text)
-            y_text.extend([composer] * len(text))
-
-            complete += 1
-            # progress_bar(complete, total)
-
-        y_text = self.y_label_encoder.transform(y_text).reshape(-1, 1)
-        y_text = self.y_onehot_encoder.transform(y_text).todense()
-
-        return X_text, y_text
-
-
-    @staticmethod
-    def tokenize(text):
-        """
-        Simple tokenize function to be used in the CountVectorizer
-        :param text: The text to be tokenized
-        :return: A list of tokens
-        """
-        return text.split(" ")
-
-
-
-    def get_docs_chunk(self, chunk_size, train_or_test):
+    def get_chunk(self, chunk_size, train_or_test):
         """
         Easy wrapper function to get all the docs and their labels
 
@@ -191,27 +132,73 @@ class VectorGetterText(VectorGetter):
         else:
             raise ValueError("train_or_test must be either 'train' or 'test'.")
 
+        X = []
+        y = []
 
-        X_chunk_text, y = self.get_text_chunk(X_chunk_filenames, y_chunk_filenames)
+        for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
+
+            X_file = MidiFileText(filename, self.meta_df).to_X()
+            X.extend(X_file)
+            y.extend([composer] * len(X_file))
+
+
+        y = self.y_label_encoder.transform(y).reshape(-1, 1)
+        y = self.y_onehot_encoder.transform(y).todense()
+
+
         if train_or_test == "train":
             self.last_train_chunk_i += len(X_chunk_filenames)
         else:
             self.last_test_chunk_i += len(X_chunk_filenames)
 
-        # print("Transforming corpus...")
-        docs = []
-        # max_doc_len = 0
-        for track in X_chunk_text:
-            tokens = self.tokenize(track)
-            docs.append(self.vectorizer.transform(tokens))
-            # track_len = len(tokens)
-            # if track_len > max_doc_len:
-            #     max_doc_len = track_len
 
-        X = np.array([sequence.pad_sequences(np.array(x[:NUM_STEPS, :].T.todense()), maxlen=NUM_STEPS).T for x in docs])
+
+        X = np.array(X)
         # print(len(y), "individual tracks loaded!")
 
         return X, y
+
+
+
+
+class VectorGetterText(VectorGetter):
+
+    def __init__(self, base_dir="raw_midi"):
+        super().__init__(base_dir)
+
+        self.vectorizer_pickle = os.path.join(self.base_dir, "text_vectorizer.pkl")
+        self.vectorizer = None
+        self.n_features = 0
+
+
+        self.get_vectorizer()
+
+
+
+    @staticmethod
+    def tokenize(text):
+        """
+        Simple tokenize function to be used in the CountVectorizer
+        :param text: The text to be tokenized
+        :return: A list of tokens
+        """
+        return text.split(" ")
+
+
+
+    def get_vectorizer(self):
+
+        if os.path.exists(self.vectorizer_pickle):
+            print("Loading vectorizer from", self.vectorizer_pickle, "...")
+            with open(self.vectorizer_pickle, "rb") as f:
+                self.vectorizer = pickle.load(f)
+        else:
+            self.train_vectorizer()
+
+        self.n_features = len(self.vectorizer.get_feature_names())
+        MidiTrackText.vectorizer = self.vectorizer
+        print("Loaded a vocabulary of", self.n_features, "features.")
+
 
 
     def train_vectorizer(self):
@@ -232,11 +219,12 @@ class VectorGetterText(VectorGetter):
 
             i += 1
             progress_bar(i, total)
-        
+
         vocab = list(vocab)
 
         print("Fitting vectorizer...")
-        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(vocab)
+        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(
+            vocab)
 
         print("Saving", self.vectorizer_pickle, "...")
         with open(self.vectorizer_pickle, "wb") as f:
@@ -244,9 +232,11 @@ class VectorGetterText(VectorGetter):
 
 
 
+
 if __name__ == "__main__":
 
     dataset = VectorGetterText("raw_midi")
     while dataset.last_train_chunk_i < dataset.n_train_files:
-        X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
+        X, y = dataset.get_chunk(CHUNK_SIZE, "train")
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
+

@@ -57,7 +57,7 @@ def create_and_train_model():
         dataset.reset_chunks()
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
-            X, y = dataset.get_docs_chunk(CHUNK_SIZE, "train")
+            X, y = dataset.get_chunk(CHUNK_SIZE, "train")
             loss = model.train_on_batch(X, y)
             progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
         print()  # newline
@@ -86,7 +86,7 @@ def get_model_accuracy(model):
     progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
 
     while dataset.last_test_chunk_i < dataset.n_test_files:
-        X, y = dataset.get_docs_chunk(CHUNK_SIZE, "test")
+        X, y = dataset.get_chunk(CHUNK_SIZE, "test")
         if first_round:
             actual = y
             predictions = model.predict(X)
