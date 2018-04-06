@@ -7,6 +7,7 @@ import mido
 import pandas as pd
 import numpy as np
 from collections import Counter
+from scipy.sparse import csr_matrix
 
 from keras.preprocessing import sequence
 
@@ -244,7 +245,8 @@ class MidiTrackNHot(MidiTrack):
         if not self.track_dict:
             return None
 
-        empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
+        # empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
+        empty = np.zeros(128 + 4)
 
         if self.channel != 10:
             first = empty.copy()
@@ -261,23 +263,21 @@ class MidiTrackNHot(MidiTrack):
 
             for msg in notes:
                 n_hot[msg.note] = 1
-                duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
-                n_hot[128 + duration] = 1
+                # duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
+                # n_hot[128 + duration] = 1
 
             result.append(n_hot)
 
         if self.channel != 10:
             last = empty.copy()
             last[-1] = 1
-            result.append([last])
+            result.append(last)
         else:
             last = empty.copy()
             last[-3] = 1
-            result.append([last])
+            result.append(last)
 
         return result
-
-
 
 
 
@@ -336,21 +336,15 @@ class MidiFileBase:
             track_converter = self.track_converter(track, self.ticks_transformer, self.key_sig_transpose)
             track_result = track_converter.to_sequence()
 
-            try:
-                if track_result == None:
-                    continue
-                else:
-                    track_result = np.array(track_result.todense())
-                    chunks = np.array_split(track_result, NUM_STEPS)
-                    for chunk in chunks:
-                        chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS).T
-                        X.append(chunk)
-            except ValueError:
-                track_result = np.array(track_result)
-                chunks = np.array_split(track_result, NUM_STEPS, axis=0)
-                for chunk in chunks:
-                    chunk = sequence.pad_sequences(chunk.T.todense(), maxlen=NUM_STEPS).T
-                    X.append(chunk)
+            if track_result == None:
+                continue
+
+            if type(track_result) == csr_matrix:
+                track_result = np.array(track_result.todense())
+            chunks = np.array_split(track_result, NUM_STEPS)
+            for chunk in chunks:
+                chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS).T
+                X.append(chunk)
 
         return X
 
@@ -386,10 +380,16 @@ class MidiFileText(MidiFileBase):
 
 
 
+class MidiFileNHot(MidiFileBase):
+
+    def __init__(self, filename, meta_df):
+        super().__init__(filename, meta_df, MidiTrackNHot)
+
+
 
 
 if __name__ == "__main__":
     file = "raw_midi/Arcas/Arcas_Fagot_.mid"
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiTrackText(mid.tracks[1], 1, 0)
+    t = MidiTrackNHot(mid.tracks[1], 1, 0)
