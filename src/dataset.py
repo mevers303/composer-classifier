@@ -10,8 +10,6 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
-from keras.preprocessing import sequence
-import mido
 
 from globals import *
 from midi_processing import MidiFileText, MidiTrackText
