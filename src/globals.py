@@ -27,13 +27,13 @@ MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify
 NUM_STEPS = 100
 # The number of unique features to use in the CountVectorizer.
-TEXT_MAXIMUM_FEATURES = 20000
+TEXT_MAXIMUM_FEATURES = 10000
 # How many midi files to load at once
-BATCH_SIZE = 52
+BATCH_SIZE = 26
 # How many epochs to train for?
 N_EPOCHS = 50
 # The nodes in each hidden layer
-HIDDEN_LAYER_SIZE = 512
+HIDDEN_LAYER_SIZE = 256
 
 
 
