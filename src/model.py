@@ -38,7 +38,6 @@ def create_and_train_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    # model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features)))
     model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
     # model.add(LSTM(units=HIDDEN_LAYER_SIZE, return_sequences=True))
     model.add(LSTM(units=HIDDEN_LAYER_SIZE))
@@ -56,7 +55,7 @@ def create_and_train_model():
         dataset.reset_chunks()
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
-            X, y = dataset.get_chunk(CHUNK_SIZE, "train")
+            X, y = dataset.get_chunk(BATCH_SIZE, "train")
             loss = model.train_on_batch(X, y)
             progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
         print()  # newline
@@ -85,7 +84,7 @@ def get_model_accuracy(model):
     progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
 
     while dataset.last_test_chunk_i < dataset.n_test_files:
-        X, y = dataset.get_chunk(CHUNK_SIZE, "test")
+        X, y = dataset.get_chunk(BATCH_SIZE, "test")
         if first_round:
             actual = y
             predictions = model.predict(X)

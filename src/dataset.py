@@ -132,25 +132,27 @@ class VectorGetter():
         X = []
         y = []
 
+        complete = 0
+        total = len(X_chunk_filenames)
+
         for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
 
             X_file = MidiFileText(filename, self.meta_df).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
+            complete += 1
             if train_or_test == "train":
                 self.last_train_chunk_i += 1
-                progress_bar(self.last_train_chunk_i, len(X_chunk_filenames))
+                # progress_bar(complete, total)
             elif train_or_test == "test":
                 self.last_test_chunk_i += 1
-                progress_bar(self.last_test_chunk_i, len(X_chunk_filenames))
+                # progress_bar(complete, total)
 
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = self.y_onehot_encoder.transform(y).todense()
-
-
 
 
 
@@ -239,6 +241,6 @@ if __name__ == "__main__":
     dataset = VectorGetterText("raw_midi")
     progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
     while dataset.last_train_chunk_i < dataset.n_train_files:
-        X, y = dataset.get_chunk(CHUNK_SIZE, "train")
+        X, y = dataset.get_chunk(BATCH_SIZE, "train")
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
 
