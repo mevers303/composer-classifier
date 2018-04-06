@@ -263,7 +263,7 @@ class MidiTrackNHot(MidiTrack):
             for msg in notes:
                 n_hot[msg.note] = 1
                 duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
-                n_hot[128 + 4 + duration] = 1
+                n_hot[127 + 4 + duration] = 1
 
             result.append(n_hot)
 
