@@ -93,7 +93,7 @@ def batch_fit_model(model):
             f.write("\n")
         print()  # newline
 
-        return model
+    return model
 
 
 
@@ -149,12 +149,6 @@ def get_model_accuracy(model):
         else:
             actual = np.append(actual, y, axis=0)
             predictions = np.append(predictions, model.predict(X), axis=0)
-
-        print("Epoch progress:")
-        progress_bar(dataset.last_test_chunk_i, dataset.n_test_files)
-        print()
-
-    print(predictions)
 
 
     # MEASURE ACCURACY

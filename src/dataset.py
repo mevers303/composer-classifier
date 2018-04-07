@@ -109,7 +109,7 @@ class VectorGetter():
             self.y_filenames.extend(composers_works.composer.values)
 
 
-        self.X_train_filenames, self.X_test_filenames, self.y_train_filenames, self.y_test_filenames = train_test_split(self.X_filenames, self.y_filenames)
+        self.X_train_filenames, self.X_test_filenames, self.y_train_filenames, self.y_test_filenames = train_test_split(self.X_filenames, self.y_filenames, stratify=self.y_filenames)
         self.n_train_files = len(self.X_train_filenames)
         self.n_test_files = len(self.X_test_filenames)
         print("Found", self.n_train_files, "training and", self.n_test_files, "test MIDI files!")
@@ -201,7 +201,7 @@ class VectorGetter():
         y = self.y_onehot_encoder.transform(y).todense().astype(np.byte)
         X = np.array(X, dtype=np.byte)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y,)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
 
 
         return X_train, X_test, y_train, y_test
