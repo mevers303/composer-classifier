@@ -38,7 +38,7 @@ def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True, dtype=np.int32))
     # model.add(LSTM(units=np.int32(HIDDEN_LAYER_SIZE / 2), return_sequences=True))
     model.add(LSTM(units=HIDDEN_LAYER_SIZE))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
