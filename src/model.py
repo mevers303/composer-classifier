@@ -11,7 +11,7 @@ from keras.layers import LSTM, Dense
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterNHot("raw_midi")
+dataset = VectorGetterText("raw_midi")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -59,15 +59,32 @@ def batch_fit_model(model):
         f.write("Layers: 2\n")
 
     for epoch in range(N_EPOCHS):
+
         print("EPOCH", epoch + 1, "/", N_EPOCHS)
+
         dataset.reset_chunks()
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
+
             X, y = dataset.get_chunk(BATCH_SIZE, "train")
-            loss = model.train_on_batch(X, y)
-            progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
+            this_batch_len = X.shape[0]
+            shuffled_i = np.arange(this_batch_len)
+            np.random.shuffle(shuffled_i)
+            X = X[shuffled_i]
+            y = y[shuffled_i]
+
+            this_batch_i = 0
+            while this_batch_i < this_batch_len:
+                X_batch = X[this_batch_i:this_batch_i + BATCH_SIZE]
+                y_batch = y[this_batch_i:this_batch_i + BATCH_SIZE]
+
+                loss = model.train_on_batch(X_batch, y_batch)
+                progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
+
+                this_batch_i += BATCH_SIZE
+
             with open("model_log.txt", "a") as f:
-                f.write("EPOCH {}: {}\n".format(epoch, loss))
+                f.write("EPOCH {}: {}\n".format(epoch, get_model_accuracy(model)))
 
 
         with open("model_log.txt", "a") as f:

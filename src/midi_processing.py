@@ -347,7 +347,8 @@ class MidiFileBase:
             chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]
 
             for chunk in chunks:
-                chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T
+                if chunk.shape[0] < NUM_STEPS:
+                    chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T
                 X.append(chunk)
 
         return X
@@ -393,7 +394,8 @@ class MidiFileNHot(MidiFileBase):
 
 
 if __name__ == "__main__":
-    file = "raw_midi/Arcas/Arcas_Fagot_.mid"
+    file = "raw_midi/Arndt/Nola, Novelty piano solo.mid"
     df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiTrackNHot(mid.tracks[1], 1, 0)
+    t = MidiFileNHot(file, df)
+    x = t.to_X()
