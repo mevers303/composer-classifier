@@ -14,7 +14,7 @@ from keras import backend
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterText("raw_midi")
+dataset = VectorGetterText("midi/classical")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -83,8 +83,10 @@ def batch_fit_model(model):
                 progress_bar(this_batch_i, this_batch_len, text=str(loss))
 
 
+
         with open("model_log.txt", "a") as f:
             f.write("EPOCH {}: {}\n".format(epoch, loss))
+
 
         save_model(model, "text_model", epoch)
 

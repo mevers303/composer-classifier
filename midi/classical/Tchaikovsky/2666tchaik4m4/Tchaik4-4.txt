@@ -1,0 +1,13 @@
+   This is a sequence of the 4th and final movement of
+Tchaikovsky's 4th Symphony for the Proteus 2 sound module.
+
+   All tracks play at concert pitch.
+
+   You will note that string sections share MIDI channels
+in order to make this playable on one sound module.
+
+                  Gary Goldberg
+
+           National Capital Amiga Users Group
+
+                  garyg@ix.netcom.com

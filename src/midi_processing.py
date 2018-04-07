@@ -394,8 +394,8 @@ class MidiFileNHot(MidiFileBase):
 
 
 if __name__ == "__main__":
-    file = "raw_midi/Arndt/Nola, Novelty piano solo.mid"
-    df = pd.read_csv("raw_midi/meta.csv", index_col="filename")
+    file = "midi/Arndt/Nola, Novelty piano solo.mid"
+    df = pd.read_csv("midi/classical/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
     t = MidiFileNHot(file, df)
     x = t.to_X()

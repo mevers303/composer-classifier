@@ -11,9 +11,9 @@ from numpy import argsort
 ####################### OPTIONS #########################
 ######### FEATURES
 # How many pieces must a composer have for us to consider them?
-MINIMUM_WORKS = 80
+MINIMUM_WORKS = 120
 # How many pieces will we use from each composer?
-MAXIMUM_WORKS = 100
+MAXIMUM_WORKS = 150
 
 ###### HYPER PARAMETERS
 # How many threads to use when parsing the MIDI archive?
@@ -31,7 +31,7 @@ TEXT_MAXIMUM_FEATURES = 50000
 # How many midi files to load at once
 BATCH_FILES = 50
 # How many chunks of NUM_STEPS to load
-BATCH_SIZE = 56
+BATCH_SIZE = 66
 # How many epochs to train for?
 N_EPOCHS = 100
 # The nodes in each hidden layer

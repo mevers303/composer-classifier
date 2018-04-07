@@ -1,0 +1,17 @@
+   This sequence is of the first movement of Tchaikovsky's 2nd
+Symphony, based on Ukrainian themes. It was sequenced for the
+Proteus 2 sound module.
+
+   All tracks have been transposed to concert pitch.
+
+   Note that there are two program changes in the French
+Horn track, in bars 2 and 70. Program 36 is a p French
+Horn, 37 is ff, and 38 is a French Horn section.
+
+   String sections share their corresponding MIDI channel
+with program changes between bowed and pizzicato strings.
+
+                     Gary Goldberg
+         National Capital Amiga Users Group
+
+                  garyg@ix.netcom.com

@@ -1,0 +1,19 @@
+   This sequence is of the finale of Tchaikovsky's 2nd
+Symphony, based on Ukrainian themes. It was sequenced for the
+Proteus 2 sound module, using a Korg O3R/W for its GM tuba patch.
+
+   All tracks have been transposed to concert pitch.
+     
+   String sections share their corresponding MIDI channel
+with program changes between bowed and pizzicato strings.
+
+   Please note that bars 342-357 of the Tremolo Strings
+track play a Pizzicato Violins; this was done because some of the
+violins are playing a bowed passage at the same time.
+
+
+
+                     Gary Goldberg
+         National Capital Amiga Users Group
+
+                  garyg@ix.netcom.com
