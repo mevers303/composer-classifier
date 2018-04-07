@@ -29,9 +29,9 @@ NUM_STEPS = 100
 # The number of unique features to use in the CountVectorizer.
 TEXT_MAXIMUM_FEATURES = 50000
 # How many midi files to load at once
-BATCH_FILES = 100
+BATCH_FILES = 50
 # How many chunks of NUM_STEPS to load
-BATCH_SIZE = 70
+BATCH_SIZE = 56
 # How many epochs to train for?
 N_EPOCHS = 100
 # The nodes in each hidden layer
