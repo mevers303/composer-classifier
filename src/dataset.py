@@ -266,7 +266,7 @@ class VectorGetterText(VectorGetter):
         vocab = list(vocab)
 
         print("Fitting vectorizer...")
-        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES).fit(
+        self.vectorizer = CountVectorizer(tokenizer=VectorGetterText.tokenize, max_features=TEXT_MAXIMUM_FEATURES, dtype=np.byte).fit(
             vocab)
 
         print("Saving", self.vectorizer_pickle, "...")
