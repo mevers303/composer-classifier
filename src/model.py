@@ -8,7 +8,7 @@ from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense
 from keras import backend
 
-backend.floatx('float16')
+backend.set_floatx('float16')
 
 
 from globals import *
