@@ -351,7 +351,7 @@ class MidiFileBase:
                     chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T
                 X.append(chunk)
 
-        return X
+        return np.array(X, dtype=np.byte)
 
 
 
