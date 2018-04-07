@@ -37,12 +37,22 @@ There are 3 feature extraction strategies we will be exploring.  Now we will dem
 <note_off channel=0 note=45 velocity=0   time=256>
 <note_on  channel=0 note=47 velocity=110 time=0>
 <note_off channel=0 note=47 velocity=0   time=256>
+<note_on  channel=0 note=43 velocity=110 time=0>
+<note_off channel=0 note=43 velocity=0   time=256>
+<note_on  channel=0 note=41 velocity=110 time=0>
+<note_off channel=0 note=41 velocity=0   time=256>
+<note_on  channel=0 note=41 velocity=110 time=0>
+<note_on  channel=0 note=43 velocity=110 time=0>
+<note_on  channel=0 note=45 velocity=110 time=0>
+<note_off channel=0 note=41 velocity=0   time=256>
+<note_off channel=0 note=43 velocity=0   time=0>
+<note_off channel=0 note=45 velocity=0   time=0>
 ```
 
 ##### 1.  Text Encoding
 Each MIDI track is converted into a text string with the format `"<note_name>:<duration>"`.  The example MIDI messages will be encoded as such:
 ```
-"TRACK_START A1:256 B1:256 TRACK_END"
+"TRACK_START A1:256 B1:256 G1:256 F1:256 F1:256;G1:256;A1:256 TRACK_END"
 ```
 
 ##### 2.  n-Hot Encoding
@@ -52,15 +62,9 @@ Each MIDI track will be converted to a time-series encoded as a n-hot vector:
 | ---- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-
-
-##### 3.  Raw MIDI Messages
-Each MIDI track will be converted into a vector containing the raw message data.  I'm not sure this will work, but let's try it why not:
-
-| time | channel | note | velocity | time |
-| --- | --- | --- | --- | --- |
-| 1 | 0 | 45 | 110 | 0 |
-| 2 | 0 | 47 | 110 | 256 |
+| 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| 4 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | 0 | 0 |
 
 
 ### Local Dataset
@@ -81,9 +85,9 @@ The MIDI files to be used must be stored with a specific directory structure.  T
 There are several functions in `file_functions.py` that may assist you.
 
 ##### Meta Dataframe
-A Pandas dataframe containing metadata about the local MIDI files must be created and saved as a .csv for later use.  The `midi_archive.py` script will create it for you.  Pass the base directory containg the composers subdirectories as an argument.
+A Pandas dataframe containing metadata about the local MIDI files must be created and saved as a .csv for later use.  The `midi_archive.py` script will create it for you.  Pass the base directory containg the composers subdirectories as an argument, you can also remove corrupt files with the `--delete-corrupt-files` option.
 ```bash
-python src/midi_archive.py midi/classical/
+python src/midi_archive.py [--delete-corrupt-files] midi/classical/
 ```
 
 ### Model
