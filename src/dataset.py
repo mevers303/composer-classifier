@@ -70,10 +70,14 @@ class VectorGetter():
 
         :return: A list of composers
         """
-        composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
-        composers_df.columns = ["works"]
 
-        valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
+
+        # composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
+        # composers_df.columns = ["works"]
+        #
+        # valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
+        # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Verdi", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
+        valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
 
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
@@ -156,7 +160,7 @@ class VectorGetter():
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
-        y = self.y_onehot_encoder.transform(y).todense().astype(np.byte)
+        y = np.array(self.y_onehot_encoder.transform(y).todense(), dtype=np.byte)
 
 
 
