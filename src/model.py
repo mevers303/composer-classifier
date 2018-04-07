@@ -11,7 +11,7 @@ from keras.layers import LSTM, Dense
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterText("raw_midi")
+dataset = VectorGetterNHot("raw_midi")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -83,8 +83,10 @@ def batch_fit_model(model):
 
                 this_batch_i += BATCH_SIZE
 
-            with open("model_log.txt", "a") as f:
-                f.write("EPOCH {}: {}\n".format(epoch, get_model_accuracy(model)))
+        with open("model_log.txt", "a") as f:
+            f.write("EPOCH {}: {}\n".format(epoch, loss))
+
+        save_model(model, "text_model", epoch)
 
 
         with open("model_log.txt", "a") as f:
@@ -117,7 +119,7 @@ def all_fit_model(model):
 
 
 
-def save_model(model, filename):
+def save_model(model, filename, epoch):
 
     print("Saving model to disk")
     # serialize model to JSON
@@ -125,7 +127,7 @@ def save_model(model, filename):
     with open(filename + ".json", "w") as json_file:
         json_file.write(model_json)
     # serialize weights to HDF5
-    model.save_weights(filename + "model.h5")
+    model.save_weights(filename + "_e{}.h5".format(epoch))
 
 
 
@@ -170,9 +172,14 @@ def get_model_accuracy(model):
 if __name__ == "__main__":
 
     model = create_model()
-    model = all_fit_model(model)
-    save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
+
     # model = load_model_from_disk()
+    if type(dataset) == VectorGetterNHot:
+        model = all_fit_model(model)
+        save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
+    elif type(dataset) == VectorGetterText:
+        model = batch_fit_model(model)
+
     accuracy = get_model_accuracy(model)
 
     print("Accuracy:", accuracy)
