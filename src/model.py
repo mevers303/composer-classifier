@@ -41,9 +41,9 @@ def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    model.add(LSTM(units=HIDDEN_LAYER_SIZE, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(LSTM(units=1024, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
     # model.add(LSTM(units=np.int32(HIDDEN_LAYER_SIZE / 2), return_sequences=True))
-    model.add(LSTM(units=HIDDEN_LAYER_SIZE))
+    model.add(LSTM(units=512))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
@@ -79,7 +79,7 @@ def batch_fit_model(model):
             this_batch_i = 0
             while this_batch_i < this_batch_len:
                 loss = model.train_on_batch(X[this_batch_i:this_batch_i + BATCH_SIZE], y[this_batch_i:this_batch_i + BATCH_SIZE])
-                progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
+                progress_bar(this_batch_i, BATCH_SIZE, text=str(loss))
 
                 this_batch_i += BATCH_SIZE
 
