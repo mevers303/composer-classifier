@@ -85,14 +85,11 @@ def batch_fit_model(model):
 
 
         with open("model_log.txt", "a") as f:
-            f.write("EPOCH {}: {}\n".format(epoch, loss))
+            f.write("EPOCH {}: {}\n".format(epoch, get_model_accuracy(model)))
 
 
         save_model(model, "text_model", epoch)
 
-
-        with open("model_log.txt", "a") as f:
-            f.write("\n")
         print()  # newline
 
     return model
