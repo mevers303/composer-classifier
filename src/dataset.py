@@ -59,6 +59,7 @@ class VectorGetter():
         :return: A pandas dataframe with the metadate.
         """
         self.meta_df = pd.read_csv(os.path.join(self.base_dir, csv_file), index_col="filename")
+        self.meta_df = self.meta_df[self.meta_df.type == 1]
         return self.meta_df
 
 
@@ -196,7 +197,7 @@ class VectorGetter():
         y = self.y_onehot_encoder.transform(y).todense().astype(np.byte)
         X = np.array(X, dtype=np.byte)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y)
+        X_train, X_test, y_train, y_test = train_test_split(X, y,)
 
 
         return X_train, X_test, y_train, y_test
@@ -309,5 +310,9 @@ class VectorGetterNHot(VectorGetter):
 
 if __name__ == "__main__":
 
-    dataset = VectorGetterNHot("raw_midi")
-    X, y = dataset.get_all("train")
+    # dataset = VectorGetterNHot("raw_midi")
+    # X_train, X_test, y_train, y_test = dataset.get_all_split("train")
+
+    dataset = VectorGetterText("raw_midi")
+    while dataset.last_train_chunk_i < dataset.n_train_files:
+        X, y = dataset.get_chunk(BATCH_FILES, "train")
