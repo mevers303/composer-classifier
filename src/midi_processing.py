@@ -224,7 +224,7 @@ class MidiTrackText(MidiTrack):
         if not text:
             return None
 
-        result = self.vectorizer.transform(text)
+        result = self.vectorizer.transform(text, dtype=np.byte)
 
         return result
 

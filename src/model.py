@@ -79,9 +79,9 @@ def batch_fit_model(model):
             this_batch_i = 0
             while this_batch_i < this_batch_len:
                 loss = model.train_on_batch(X[this_batch_i:this_batch_i + BATCH_SIZE], y[this_batch_i:this_batch_i + BATCH_SIZE])
+                this_batch_i += BATCH_SIZE
                 progress_bar(this_batch_i, this_batch_len, text=str(loss))
 
-                this_batch_i += BATCH_SIZE
 
         with open("model_log.txt", "a") as f:
             f.write("EPOCH {}: {}\n".format(epoch, loss))
