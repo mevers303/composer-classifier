@@ -66,7 +66,7 @@ def batch_fit_model(model):
         progress_bar(dataset.last_train_chunk_i, dataset.n_train_files)
         while dataset.last_train_chunk_i < dataset.n_train_files:
 
-            X, y = dataset.get_chunk(BATCH_SIZE, "train")
+            X, y = dataset.get_chunk(BATCH_FILES, "train")
             this_batch_len = X.shape[0]
             shuffled_i = np.arange(this_batch_len)
             np.random.shuffle(shuffled_i)
@@ -75,10 +75,7 @@ def batch_fit_model(model):
 
             this_batch_i = 0
             while this_batch_i < this_batch_len:
-                X_batch = X[this_batch_i:this_batch_i + BATCH_SIZE]
-                y_batch = y[this_batch_i:this_batch_i + BATCH_SIZE]
-
-                loss = model.train_on_batch(X_batch, y_batch)
+                loss = model.train_on_batch(X[this_batch_i:this_batch_i + BATCH_SIZE], y[this_batch_i:this_batch_i + BATCH_SIZE])
                 progress_bar(dataset.last_train_chunk_i, dataset.n_train_files, text=str(loss))
 
                 this_batch_i += BATCH_SIZE
