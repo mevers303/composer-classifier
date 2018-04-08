@@ -38,12 +38,14 @@ def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    model.add(LSTM(units=256, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
-    model.add(Dropout(.2))
-    model.add(LSTM(units=192, return_sequences=True))
-    model.add(Dropout(.2))
-    model.add(LSTM(units=128))
-    #model.add(Dropout(.2))
+    model.add(LSTM(units=1111, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(Dropout(.555))
+    #model.add(LSTM(units=555, return_sequences=True))
+    #model.add(Dropout(.3))
+    model.add(LSTM(units=666, return_sequences=True))
+    model.add(Dropout(.444))
+    model.add(LSTM(222))
+    model.add(Dropout(.111))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
@@ -118,7 +120,7 @@ def all_fit_model(model):
 
 
 
-def save_model(model, filename, epoch):
+def save_model(model, filename, epoch=""):
 
     print("Saving model to disk")
     # serialize model to JSON
