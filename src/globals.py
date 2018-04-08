@@ -175,7 +175,7 @@ def bin_note_duration(duration):
 
 
 _PROGRESS_BAR_LAST_I = 100
-def progress_bar(done, total, resolution = 0, text = ""):
+def progress_bar(done, total, resolution = 0, text=""):
     """
     Prints a progress bar to stdout.
 

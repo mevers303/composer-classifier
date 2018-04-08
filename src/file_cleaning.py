@@ -1,6 +1,6 @@
 # Mark Evers
 # Created: 3/28/2018
-# midi_processing.py
+# midi_file.py
 # Functions for managing MIDI files
 
 import os

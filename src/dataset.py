@@ -12,11 +12,11 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
 from globals import *
-from midi_processing import MidiFileText, MidiTrackText, MidiFileNHot
+from midi_handlers.midi_file import MidiFileText, MidiTrackText, MidiFileNHot
 
 
 
-class VectorGetter():
+class VectorGetter:
 
     def __init__(self, base_dir, file_converter):
         self.base_dir = base_dir
