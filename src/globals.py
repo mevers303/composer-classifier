@@ -21,11 +21,11 @@ NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
 TICKS_PER_BEAT = 1024
 # The resolution of music notes
-MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 16  # 64th notes
+MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 32  # 128th notes
 # The longest note allowed
 MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify
-NUM_STEPS = 2500
+NUM_STEPS = 64
 # The number of unique features to use in the CountVectorizer.
 TEXT_MAXIMUM_FEATURES = 50000
 # How many midi files to load at once
@@ -33,7 +33,7 @@ BATCH_FILES = 50
 # How many chunks of NUM_STEPS to load
 BATCH_SIZE = 66
 # How many epochs to train for?
-N_EPOCHS = 50
+N_EPOCHS = 22
 # The nodes in each hidden layer
 HIDDEN_LAYER_SIZE = 1024
 
