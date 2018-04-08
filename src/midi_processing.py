@@ -25,7 +25,7 @@ class MidiMessage():
         self.start_time = start_time
 
     def transpose(self, interval):
-        if self.channel != 10:
+        if self.channel != 9:
             self.note += interval
 
 
@@ -42,10 +42,11 @@ class MidiTrack():
         :param key_sig_transpose: The interval to transpose into C/Am
         """
 
-        self.time_now = 0  # absolute time
+        self.time_now = None  # absolute time
         self.open_notes = {}  # {msg.note: MidiMessage}
         self.track_dict = None  # {start_time: [MidiMessage, ...]}
         self.track_C_octaves = Counter()
+        self.program = 0
 
         self.track = track
         self.ticks_transformer = ticks_transformer
@@ -68,10 +69,8 @@ class MidiTrack():
 
             # IMPORTANT: transpose to correct key signature occurs here
             this_msg.transpose(self.key_sig_transpose)
-            this_msg.duration = self.time_now - this_msg.start_time
-            # if it's too long, shorten it
-            if this_msg.duration > MAXIMUM_NOTE_LENGTH:
-                this_msg.duration = MAXIMUM_NOTE_LENGTH
+            # bin it to the correct duration
+            this_msg.duration = bin_note_duration(self.time_now - this_msg.start_time)
 
             if this_msg.start_time not in self.track_dict:
                 self.track_dict[this_msg.start_time] = []
@@ -137,13 +136,22 @@ class MidiTrack():
         for msg in self.track:
 
             # msg.time is the time since the last message.  So add this to time to get the current time since the track start
-            self.time_now += int(msg.time * self.ticks_transformer)
+            # we haven't seen a note_on yet, it's just some meta message at the beginning.  we want to make the first note at time = 0
+            if self.time_now != None:
+                self.time_now += int(msg.time * self.ticks_transformer)
+
+            # get the instrument
+            if msg.type == "program_change":
+                self.program = msg.program
 
             if msg.type == "note_off":
                 self.close_note(msg.note)
                 continue
 
             if msg.type == 'note_on':
+
+                if self.time_now == None:
+                    self.time_now = 0
 
                 # if the velocity is 0, that means it is a "note_off" message, close the note and move on
                 if msg.velocity == 0:
@@ -194,20 +202,19 @@ class MidiTrackText(MidiTrack):
         if not self.track_dict:
             return None
 
-        if self.channel != 10:
-            result = ["TRACK_START"]
+        if self.channel != 9:
+            result = [str(self.program) + "_TRACK_START"]
         else:
             result = ["DRUM_TRACK_START"]
 
         for time, notes in sorted(self.track_dict.items()):
-            step = [midi_to_string(msg.note) + ":" + str(bin_note_duration(msg.duration)) for msg in sorted(notes, key=lambda x: x.note)]
+            step = [midi_to_string(msg.note) + ":" + str(msg.duration) for msg in sorted(notes, key=lambda x: x.note)]
             result.append(";".join(step))
 
-        if self.channel != 10:
+        if self.channel != 9:
             result.append("TRACK_END")
         else:
-            result.append("DRUM_TRACK_END")
-
+            result.append(str(self.program) + "_TRACK_END")
 
         return result
 
@@ -245,15 +252,20 @@ class MidiTrackNHot(MidiTrack):
         if not self.track_dict:
             return None
 
-        empty = np.zeros(128 + 4 + NOTE_RESOLUTION)
+        first_program_on_i = 128 + len(DURATION_BINS)
+        first_program_off_i = first_program_on_i + 128
+        drum_track_on_i = first_program_off_i + 128
+        drum_track_off_i = drum_track_on_i + 1
 
-        if self.channel != 10:
+        empty = np.zeros(drum_track_off_i + 1)
+
+        if self.channel != 9:
             first = empty.copy()
-            first[-2] = 1
+            first[first_program_on_i + self.program] = 1
             result = [first]
         else:
             first = empty.copy()
-            first[-4] = 1
+            first[drum_track_on_i] = 1
             result = [first]
 
         for time, notes in sorted(self.track_dict.items()):
@@ -262,18 +274,18 @@ class MidiTrackNHot(MidiTrack):
 
             for msg in notes:
                 n_hot[msg.note] = 1
-                duration = np.amin([int(bin_note_duration(msg.duration) / NOTE_RESOLUTION), NOTE_RESOLUTION])
-                n_hot[127 + 4 + duration] = 1
+                duration = DURATION_BINS.index(msg.duration)
+                n_hot[128 + duration] = 1
 
             result.append(n_hot)
 
-        if self.channel != 10:
+        if self.channel != 9:
             last = empty.copy()
-            last[-1] = 1
+            last[first_program_off_i + self.program] = 1
             result.append(last)
         else:
             last = empty.copy()
-            last[-3] = 1
+            last[drum_track_off_i] = 1
             result.append(last)
 
         return result
@@ -394,8 +406,8 @@ class MidiFileNHot(MidiFileBase):
 
 
 if __name__ == "__main__":
-    file = "midi/Arndt/Nola, Novelty piano solo.mid"
+    file = "midi/classical/Arndt/Nola, Novelty piano solo.mid"
     df = pd.read_csv("midi/classical/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiFileNHot(file, df)
+    t = MidiFileText(file, df)
     x = t.to_X()

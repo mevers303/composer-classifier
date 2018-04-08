@@ -21,7 +21,7 @@ NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
 TICKS_PER_BEAT = 1024
 # The resolution of music notes
-NOTE_RESOLUTION = 32
+MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 16  # 64th notes
 # The longest note allowed
 MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify
@@ -42,6 +42,7 @@ HIDDEN_LAYER_SIZE = 1024
 ####################### CONSTANTS #######################
 #               0     1    2    3     4    5    6     7    8     9    10    11
 MUSIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
 KEY_SIGNATURES = [[ 0,  2,  4,  5 , 7,  9, 11],  # C
                   [ 1,  3,  5,  6,  8, 10,  0],  # C#
                   [ 2,  4,  6,  7,  9, 11,  1],  # D
@@ -54,6 +55,17 @@ KEY_SIGNATURES = [[ 0,  2,  4,  5 , 7,  9, 11],  # C
                   [ 9, 11,  1,  2,  4,  6,  8],  # A
                   [10,  0,  2,  3,  5,  7,  9],  # A#
                   [11,  1,  3,  4,  6,  8, 10]]  # B
+
+# create a list of all the possible not durations to use to bin message durations into later on
+this_bin = MAXIMUM_NOTE_LENGTH
+DURATION_BINS = [this_bin]
+
+while this_bin > MINIMUM_NOTE_LENGTH:
+    # divide by half to get the next smallest note
+    this_bin = int(this_bin / 2)
+    # add the dotted note duration first cause it's bigger
+    DURATION_BINS.append(int(this_bin * 1.5))
+    DURATION_BINS.append(int(this_bin))
 
 
 
@@ -69,7 +81,7 @@ def dump_tracks(midi_file):
     for i, track in enumerate(midi_file.tracks):
         print(str(i).rjust(2), ": ", track, sep="")
 
-def dump_msgs(mido_object):
+def dump_msgs(mido_object, limit=25):
     """
     Prints all the messages contained in a track or midi file.  The delta time is in seconds when you give it a
     mido.MidiFile.
@@ -77,7 +89,10 @@ def dump_msgs(mido_object):
     :param track: A mido MidiTrack or MidiFile
     :return: None
     """
+    print("Showing first", limit, "messages")
     for i, msg in enumerate(mido_object):
+        if i >= limit:
+            return
         print(str(i).rjust(4), ": ", msg, sep="")
 
 def midi_to_music(midi_note):
@@ -134,17 +149,28 @@ def get_key_sig(note_dist):
     return best_match
 
 
-TICK_RESOLUTION = TICKS_PER_BEAT / NOTE_RESOLUTION
 def bin_note_duration(duration):
 
-    binned = int(duration / TICK_RESOLUTION)
-    remainder = duration % TICK_RESOLUTION
+    smallest_difference = MAXIMUM_NOTE_LENGTH
+    best_match = MAXIMUM_NOTE_LENGTH
 
-    if remainder > TICK_RESOLUTION / 2:
-        binned += 1
+    for bin in DURATION_BINS:
 
-    return int(binned * TICK_RESOLUTION)
+        difference = abs(duration - bin)
 
+        if not difference:
+            # they're equal
+            return bin
+        elif difference < smallest_difference:
+            # find the whichever bin it's closest to
+            smallest_difference = difference
+            best_match = bin
+        elif difference > smallest_difference:
+            # we passed our bin
+            return best_match
+
+    # this should never execute but just for sanity's sake
+    return best_match
 
 
 
