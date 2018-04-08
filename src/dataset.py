@@ -171,12 +171,7 @@ class VectorGetter:
 
 
 
-    def get_all_split(self):
-        """
-        Easy wrapper function to get all the docs and their labels
-
-        :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
-        """
+    def get_all(self):
 
         X = []
         y = []
@@ -186,9 +181,7 @@ class VectorGetter:
         print("\nLoading MIDI files...")
         progress_bar(complete, total)
 
-
         for filename, composer in zip(self.X_filenames, self.y_filenames):
-
             X_file = self.file_converter(filename, self.meta_df).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
@@ -196,10 +189,24 @@ class VectorGetter:
             complete += 1
             progress_bar(complete, total)
 
-
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = self.y_onehot_encoder.transform(y).todense().astype(np.byte)
         X = np.array(X, dtype=np.byte)
+
+
+        return X, y
+
+
+
+
+    def get_all_split(self):
+        """
+        Easy wrapper function to get all the docs and their labels
+
+        :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
+        """
+
+        X, y = self.get_all()
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
 

@@ -6,6 +6,9 @@
 import numpy as np
 from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
+from sklearn.model_selection import StratifiedKFold
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
 
 
 from globals import *
@@ -109,6 +112,7 @@ def all_fit_model(model):
         f.write("Neurons: " + str(HIDDEN_LAYER_SIZE) + "\n")
         f.write("Layers: 2\n")
 
+
     history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=N_EPOCHS, batch_size=BATCH_SIZE)
 
     with open("model_log.txt", "a") as f:
@@ -120,7 +124,18 @@ def all_fit_model(model):
 
 
 
-def save_model(model, filename, epoch=""):
+def kfold_eval():
+
+    X, y = dataset.get_all()
+    kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=777)
+
+    results = cross_val_score(KerasClassifier(build_fn=create_model, epochs=N_EPOCHS, batch_size=BATCH_SIZE), X, y, cv=kfold)
+    print("Result: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
+
+
+
+
+def save_model(model, filename, epoch=0):
 
     print("Saving model to disk")
     # serialize model to JSON
