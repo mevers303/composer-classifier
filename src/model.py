@@ -5,10 +5,7 @@
 
 import numpy as np
 from keras.models import Sequential, model_from_json
-from keras.layers import LSTM, Dense
-from keras import backend
-
-# backend.set_floatx('float16')
+from keras.layers import LSTM, Dense, Dropout
 
 
 from globals import *
@@ -42,8 +39,11 @@ def create_model():
     # CREATE THE MODEL
     model = Sequential()
     model.add(LSTM(units=64, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(Dropout(.2))
     model.add(LSTM(units=48, return_sequences=True))
+    model.add(Dropout(.2))
     model.add(LSTM(units=32))
+    model.add(Dropout(.2))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     # model = load_model_from_disk()
     if type(dataset) == VectorGetterNHot:
         model = all_fit_model(model)
-        save_model(model, "models/2_layer_nhot_256_192_nodropout")
+        save_model(model, "models/nhot_64_48_32_dropout")
     elif type(dataset) == VectorGetterText:
         model = batch_fit_model(model)
 
