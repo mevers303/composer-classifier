@@ -288,25 +288,25 @@ class VectorGetterNHot(VectorGetter):
         self.n_features = 128 * 3 + 2 + len(DURATION_BINS)
 
 
-    # def get_all_split(self, reload=False):
-    #
-    #     pickle_file = os.path.join(self.base_dir, "n-hot.pkl")
-    #     if not os.path.exists(pickle_file):
-    #         reload = True
-    #
-    #     if not reload:
-    #         with open(pickle_file, "rb") as f:
-    #             X_train, X_test, y_train, y_test = pickle.load(pickle_file)
-    #             return X_train, X_test, y_train, y_test
-    #
-    #
-    #     X_train, X_test, y_train, y_test = super().get_all_split()
-    #
-    #
-    #     with open(pickle_file, "wb") as f:
-    #         pickle.dump((X_train, X_test, y_train, y_test), f)
-    #
-    #     return X_train, X_test, y_train, y_test
+    def get_all_split(self, reload=False):
+
+        pickle_file = os.path.join(self.base_dir, "n-hot.pkl")
+        if not os.path.exists(pickle_file):
+            reload = True
+
+        if not reload:
+            with open(pickle_file, "rb") as f:
+                X_train, X_test, y_train, y_test = pickle.load(pickle_file)
+                return X_train, X_test, y_train, y_test
+
+
+        X_train, X_test, y_train, y_test = super().get_all_split()
+
+
+        with open(pickle_file, "wb") as f:
+            pickle.dump((X_train, X_test, y_train, y_test), f)
+
+        return X_train, X_test, y_train, y_test
 
 
 
