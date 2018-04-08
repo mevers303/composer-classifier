@@ -317,6 +317,6 @@ if __name__ == "__main__":
     # dataset = VectorGetterNHot("raw_midi")
     # X_train, X_test, y_train, y_test = dataset.get_all_split("train")
 
-    dataset = VectorGetterText("raw_midi")
-    while dataset.last_train_chunk_i < dataset.n_train_files:
-        X, y = dataset.get_chunk(BATCH_FILES, "train")
+    dataset = VectorGetterText("midi/classical")
+    # while dataset.last_train_chunk_i < dataset.n_train_files:
+    #     X, y = dataset.get_chunk(BATCH_FILES, "train")
