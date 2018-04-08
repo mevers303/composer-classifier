@@ -288,7 +288,7 @@ class MidiTrackNHot(MidiTrack):
             last[drum_track_off_i] = 1
             result.append(last)
 
-        return np.array(result, dtype=np.byte)
+        return result
 
 
 
@@ -357,9 +357,9 @@ class MidiFileBase:
             #     pass
 
             if type(track_result) == csr_matrix:
-                track_result = np.array(track_result.todense())
+                track_result = np.array(track_result.todense(), dtype=np.byte)
             else:
-                track_result = np.array(track_result)
+                track_result = np.array(track_result, dtype=np.byte)
 
             partitions = int(track_result.shape[0] / NUM_STEPS) + 1
             chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]
