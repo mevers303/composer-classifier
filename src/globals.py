@@ -13,7 +13,7 @@ from numpy import argsort
 # How many pieces must a composer have for us to consider them?
 MINIMUM_WORKS = 120
 # How many pieces will we use from each composer?
-MAXIMUM_WORKS = 150
+MAXIMUM_WORKS = 100
 
 ###### HYPER PARAMETERS
 # How many threads to use when parsing the MIDI archive?

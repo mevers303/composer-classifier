@@ -72,17 +72,17 @@ class VectorGetter:
         """
 
 
-        composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
-        composers_df.columns = ["works"]
-
-        valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
-        # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Verdi", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
-        # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
+        # composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
+        # composers_df.columns = ["works"]
+        #
+        # valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
+        # # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Verdi", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
+        valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
 
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
         self.composers = valid_composers
-        self.n_composers = len(valid_composers)
+        self.n_composers = len(self.composers)
         self.y_label_encoder = LabelEncoder().fit(self.composers)
         self.y_onehot_encoder = OneHotEncoder().fit(self.y_label_encoder.transform(self.composers).reshape(-1, 1))
 
