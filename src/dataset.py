@@ -286,6 +286,7 @@ class VectorGetterNHot(VectorGetter):
     def __init__(self, base_dir="midi"):
         super().__init__(base_dir, MidiFileNHot)
         self.n_features = 128 * 3 + 2 + len(DURATION_BINS)
+        pass
 
 
     # def get_all_split(self, reload=False):
@@ -317,6 +318,6 @@ if __name__ == "__main__":
     # dataset = VectorGetterNHot("raw_midi")
     # X_train, X_test, y_train, y_test = dataset.get_all_split("train")
 
-    dataset = VectorGetterText("midi/classical")
+    dataset = VectorGetterNHot("midi/classical")
     # while dataset.last_train_chunk_i < dataset.n_train_files:
     #     X, y = dataset.get_chunk(BATCH_FILES, "train")

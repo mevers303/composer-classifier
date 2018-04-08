@@ -5,6 +5,7 @@
 
 import mido
 import pandas as pd
+import numpy as np
 from scipy.sparse import csr_matrix
 from keras.preprocessing import sequence
 
@@ -133,5 +134,5 @@ if __name__ == "__main__":
     file = "midi/classical/Arndt/Nola, Novelty piano solo.mid"
     df = pd.read_csv("midi/classical/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiFileText(file, df)
+    t = MidiFileNHot(file, df)
     x = t.to_X()
