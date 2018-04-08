@@ -41,12 +41,10 @@ def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    model.add(LSTM(units=1111, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(LSTM(units=666, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
     model.add(Dropout(.555))
-    #model.add(LSTM(units=555, return_sequences=True))
-    #model.add(Dropout(.3))
-    model.add(LSTM(units=666, return_sequences=True))
-    model.add(Dropout(.444))
+    model.add(LSTM(units=444, return_sequences=True))
+    model.add(Dropout(.333))
     model.add(LSTM(222))
     model.add(Dropout(.111))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
