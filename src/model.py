@@ -14,7 +14,7 @@ from keras import backend
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
-dataset = VectorGetterText("midi/classical")
+dataset = VectorGetterNHot("midi/classical")
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -41,9 +41,9 @@ def create_model():
 
     # CREATE THE MODEL
     model = Sequential()
-    model.add(LSTM(units=768, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
+    model.add(LSTM(units=256, input_shape=(NUM_STEPS, dataset.n_features), return_sequences=True))
     # model.add(LSTM(units=np.int32(HIDDEN_LAYER_SIZE / 2), return_sequences=True))
-    model.add(LSTM(units=512))
+    model.add(LSTM(units=192))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
     print(model.summary())
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     # model = load_model_from_disk()
     if type(dataset) == VectorGetterNHot:
         model = all_fit_model(model)
-        save_model(model, "models/2_layer_nhot_" + str(HIDDEN_LAYER_SIZE))
+        save_model(model, "models/2_layer_nhot_256_192_nodropout")
     elif type(dataset) == VectorGetterText:
         model = batch_fit_model(model)
 
