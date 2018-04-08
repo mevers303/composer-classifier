@@ -257,7 +257,7 @@ class MidiTrackNHot(MidiTrack):
         drum_track_on_i = first_program_off_i + 128
         drum_track_off_i = drum_track_on_i + 1
 
-        empty = np.zeros(drum_track_off_i + 1)
+        empty = np.zeros(drum_track_off_i + 1, dtype=np.byte)
 
         if self.channel != 9:
             first = empty.copy()
