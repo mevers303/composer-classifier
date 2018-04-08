@@ -1,0 +1,12 @@
+***MODEL***
+Neurons: 1024
+Layers: 2
+***MODEL***
+Neurons: 1024
+Layers: 2
+***MODEL***
+Neurons: 1024
+Layers: 2
+***MODEL***
+Neurons: 1024
+Layers: 2

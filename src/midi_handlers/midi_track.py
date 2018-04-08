@@ -155,7 +155,7 @@ class MidiTrack:
             return None
 
         # transpose it to the most common octave
-        # self.transpose_octavewise()
+        self.transpose_octavewise()
 
         return self.track_dict
 
