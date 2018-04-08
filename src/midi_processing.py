@@ -288,7 +288,7 @@ class MidiTrackNHot(MidiTrack):
             last[drum_track_off_i] = 1
             result.append(last)
 
-        return result
+        return np.array(result, dtype=np.byte)
 
 
 
