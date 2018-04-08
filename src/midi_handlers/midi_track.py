@@ -232,16 +232,16 @@ class MidiTrackNHot(MidiTrack):
         if not self.track_dict:
             return None
 
-        first_program_on_i = 128 + len(DURATION_BINS)
-        first_program_off_i = first_program_on_i + 128
-        drum_track_on_i = first_program_off_i + 128
+        track_on_i = 128 + len(DURATION_BINS)
+        track_off_i = track_on_i + 1
+        drum_track_on_i = track_off_i + 1
         drum_track_off_i = drum_track_on_i + 1
 
         empty = np.zeros(drum_track_off_i + 1, dtype=np.byte)
 
         if self.channel != 9:
             first = empty.copy()
-            first[first_program_on_i + self.program] = 1
+            first[track_on_i] = 1
             result = [first]
         else:
             first = empty.copy()
@@ -261,7 +261,7 @@ class MidiTrackNHot(MidiTrack):
 
         if self.channel != 9:
             last = empty.copy()
-            last[first_program_off_i + self.program] = 1
+            last[track_off_i] = 1
             result.append(last)
         else:
             last = empty.copy()
