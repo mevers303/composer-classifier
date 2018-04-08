@@ -290,7 +290,7 @@ class VectorGetterNHot(VectorGetter):
 
     def __init__(self, base_dir="midi"):
         super().__init__(base_dir, MidiFileNHot)
-        self.n_features = 128 * 3 + 2 + len(DURATION_BINS)
+        self.n_features = 128 + len(DURATION_BINS) + 4
 
 
     def get_all_split(self, reload=False):
