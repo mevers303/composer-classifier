@@ -81,7 +81,13 @@ class MidiFileBase:
                 track_result = np.array(track_result, dtype=np.byte)
 
             partitions = int(track_result.shape[0] / NUM_STEPS) + 1
-            chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]
+            # chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]  #  this is without overlap
+            chunks = []
+            for i in range(partitions):
+                if i:
+                    #  take an overlapping chunk from the step before
+                    chunks.append(track_result[(i * NUM_STEPS) - (NUM_STEPS / 2):((i + 1) * NUM_STEPS) - (NUM_STEPS / 2)])
+                    chunks.append(track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS])
 
             for chunk in chunks:
                 if chunk.shape[0] < NUM_STEPS:

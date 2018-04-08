@@ -24,7 +24,7 @@ TICKS_PER_BEAT = 1024
 MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 32  # 128th notes
 # The longest note allowed
 MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
-# Look at the first x notes to train/classify
+# Look at the first x notes to train/classify.  MUST BE DIVISIBLE BY 2
 NUM_STEPS = 64
 # The number of unique features to use in the CountVectorizer.
 TEXT_MAXIMUM_FEATURES = 50000
