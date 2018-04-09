@@ -9,7 +9,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from keras.preprocessing import sequence
 
-from midi_handlers.midi_track import MidiTrackText, MidiTrackNHot
+from midi_handlers.midi_track import MidiTrackText, MidiTrackNHot, MidiTrackNHotTimeSeries
 from globals import *
 
 
@@ -77,8 +77,9 @@ class MidiFileBase:
 
             if type(track_result) == csr_matrix:
                 track_result = np.array(track_result.todense(), dtype=np.byte)
-            else:
+            elif type(track_result) != np.ndarray:
                 track_result = np.array(track_result, dtype=np.byte)
+
 
             partitions = int(track_result.shape[0] / NUM_STEPS) + 1
             X = []
@@ -140,10 +141,19 @@ class MidiFileNHot(MidiFileBase):
 
 
 
+class MidiFileNHotTimeSeries(MidiFileBase):
+
+    def __init__(self, filename, meta_df):
+        super().__init__(filename, meta_df, MidiTrackNHotTimeSeries)
+
+
+
 
 if __name__ == "__main__":
     file = "midi/classical/Arndt/Nola, Novelty piano solo.mid"
     df = pd.read_csv("midi/classical/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiFileNHot(file, df)
+    t = MidiFileNHotTimeSeries(file, df)
     x = t.to_X()
+    print(x)
+    pass

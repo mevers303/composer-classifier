@@ -270,3 +270,61 @@ class MidiTrackNHot(MidiTrack):
 
         return result
 
+
+
+class MidiTrackNHotTimeSeries(MidiTrack):
+
+
+    def __init__(self, track, ticks_transformer, key_sig_transpose):
+        super().__init__(track, ticks_transformer, key_sig_transpose)
+
+
+
+    @staticmethod
+    def bin_timestamp(time):
+
+        bin = int(time / MINIMUM_TIMESERIES_STEP)
+        remainder = time % MINIMUM_TIMESERIES_STEP
+
+        if remainder > MINIMUM_TIMESERIES_STEP / 2:
+            bin += 1
+
+        return bin + 1  # add 1 because the first is the special track_on note
+
+
+    def to_sequence(self):
+
+        self.to_dict()
+
+        if not self.track_dict:
+            return None
+
+
+        track_on_i = 128 + len(DURATION_BINS)
+        track_off_i = track_on_i + 1
+        drum_track_on_i = track_off_i + 1
+        drum_track_off_i = drum_track_on_i + 1
+        time_len = self.bin_timestamp(max(self.track_dict.keys())) + 1 + 2  # add 1 because we want the length, not the index.  add 2 because of track_on and track_off notes
+
+        result = np.zeros(shape=(time_len, drum_track_off_i + 1), dtype=np.byte)
+
+
+        if self.channel != 9:
+            result[0, track_on_i] = 1
+            result[-1, track_off_i] = 1
+        else:
+            result[0, drum_track_on_i] = 1
+            result[-1, drum_track_off_i] = 1
+
+
+        for time, notes in sorted(self.track_dict.items()):
+
+            time_i = self.bin_timestamp(time)
+
+            for msg in notes:
+                result[time_i, msg.note] = 1
+                duration = DURATION_BINS.index(msg.duration)
+                result[time_i, 128 + duration] = 1
+
+
+        return result

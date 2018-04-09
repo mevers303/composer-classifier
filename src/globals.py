@@ -25,7 +25,7 @@ MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 32  # 128th notes
 # The longest note allowed
 MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
 # Look at the first x notes to train/classify.  MUST BE DIVISIBLE BY 2
-NUM_STEPS = 64
+NUM_STEPS = 128 * 8
 # The number of unique features to use in the CountVectorizer.
 TEXT_MAXIMUM_FEATURES = 50000
 # How many midi files to load at once
@@ -36,6 +36,8 @@ BATCH_SIZE = 66
 N_EPOCHS = 20
 # The nodes in each hidden layer
 HIDDEN_LAYER_SIZE = 1024
+# Smallest step in a timeseries (in ticks)
+MINIMUM_TIMESERIES_STEP = MINIMUM_NOTE_LENGTH
 
 
 
