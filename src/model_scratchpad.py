@@ -15,7 +15,7 @@ from globals import *
 from file_handlers.dataset import VectorGetterText, VectorGetterNHot, VectorGetterNHotTimeSeries
 from midi_handlers.midi_file import MidiFileNHot
 
-dataset = VectorGetterNHotTimeSeries("midi/classical")
+dataset = VectorGetterNHot("midi/classical")
 logfile = "models/log.txt"
 
 # fix random seed for reproducibility
