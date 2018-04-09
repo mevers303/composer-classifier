@@ -9,13 +9,13 @@ from keras.layers import LSTM, Dense, Dropout
 from sklearn.model_selection import KFold
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
-from keras.utils import np_utils
 
 
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot
 
 dataset = VectorGetterNHot("midi/classical")
+logfile = "models/log.txt"
 
 # fix random seed for reproducibility
 np.random.seed(777)
@@ -60,7 +60,7 @@ def batch_fit_model(model):
 
     # FIT THE MODEL
     print("Training model...")
-    with open("model_log.txt", "a") as f:
+    with open(logfile, "a") as f:
         f.write("***MODEL***\n")
         f.write("Neurons: " + str(HIDDEN_LAYER_SIZE) + "\n")
         f.write("Layers: 2\n")
@@ -88,7 +88,7 @@ def batch_fit_model(model):
 
 
 
-        with open("model_log.txt", "a") as f:
+        with open(logfile, "a") as f:
             f.write("EPOCH {}: {}\n".format(epoch, get_model_accuracy(model)))
 
 
@@ -106,7 +106,7 @@ def all_fit_model(model):
 
     # FIT THE MODEL
     print("Training model...")
-    with open("model_log.txt", "a") as f:
+    with open(logfile, "a") as f:
         f.write("***MODEL***\n")
         f.write("Neurons: " + str(HIDDEN_LAYER_SIZE) + "\n")
         f.write("Layers: 2\n")
@@ -114,7 +114,7 @@ def all_fit_model(model):
 
     history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=N_EPOCHS, batch_size=BATCH_SIZE)
 
-    with open("model_log.txt", "a") as f:
+    with open(logfile, "a") as f:
         f.write(str(history))
         f.write("\n\n")
     print()  # newline
