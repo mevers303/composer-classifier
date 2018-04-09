@@ -295,23 +295,41 @@ class VectorGetterNHot(VectorGetter):
 
     def get_all_split(self, reload=False):
     
-        pickle_file = os.path.join(self.base_dir, "n-hot.pkl")
+        pickle_file = os.path.join(self.base_dir, "n-hot_split.pkl")
         if not os.path.exists(pickle_file):
             reload = True
     
         if not reload:
             with open(pickle_file, "rb") as f:
-                X_train, X_test, y_train, y_test = pickle.load(f)
-                return X_train, X_test, y_train, y_test
+                return pickle.load(f)
     
     
         X_train, X_test, y_train, y_test = super().get_all_split()
     
-        if not reload:
-            with open(pickle_file, "wb") as f:
-                pickle.dump((X_train, X_test, y_train, y_test), f)
+        with open(pickle_file, "wb") as f:
+            pickle.dump((X_train, X_test, y_train, y_test), f)
     
         return X_train, X_test, y_train, y_test
+
+
+
+
+    def get_all(self, reload=False):
+
+        pickle_file = os.path.join(self.base_dir, "n-hot_all.pkl")
+        if not os.path.exists(pickle_file):
+            reload = True
+
+        if not reload:
+            with open(pickle_file, "rb") as f:
+                return pickle.load(f)
+
+        X, y = super().get_all()
+
+        with open(pickle_file, "wb") as f:
+            pickle.dump((X, y), f)
+
+        return X, y
 
 
 
