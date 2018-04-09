@@ -259,9 +259,11 @@ class VectorGetter:
 
         X_train = np.array(X_train, dtype=np.byte)
         X_test = np.array(X_test, dtype=np.byte)
-        y_train = np.array(y_train, dtype=np.byte)
-        y_test = np.array(y_test,dtype=np.byte)
 
+        y_train = self.y_label_encoder.transform(y_train).reshape(-1, 1)
+        y_train = self.y_onehot_encoder.transform(y_train).todense().toarray(dtype=np.byte)
+        y_test = self.y_label_encoder.transform(y_test).reshape(-1, 1)
+        y_test = self.y_onehot_encoder.transform(y_test).todense().toarray(dtype=np.byte)
 
         if pickle_file:
             print("Saving dataset pickle...")
