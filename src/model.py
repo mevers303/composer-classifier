@@ -6,7 +6,7 @@
 import numpy as np
 from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from keras.utils import np_utils
@@ -126,8 +126,7 @@ def all_fit_model(model):
 def kfold_eval():
 
     X, y = dataset.get_all()
-    y_labels = np_utils.to_categorical(y)
-    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=777)
+    kfold = KFold(n_splits=10, shuffle=True, random_state=777)
 
     results = cross_val_score(KerasClassifier(build_fn=create_model, epochs=N_EPOCHS, batch_size=BATCH_SIZE), X, y_labels, cv=kfold)
     print("Result: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
