@@ -339,17 +339,6 @@ class VectorGetterNHotTimeSeries(VectorGetter):
         self.n_features = 128 + len(DURATION_BINS) + 4
 
 
-    def get_all_split(self, pickle_file="n-hot-timeseries_split.pkl", reload=False):
-        pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all_split(pickle_file, reload)
-
-
-
-    def get_all(self, pickle_file="n-hot-timeseries_all.pkl", reload=False):
-        pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all(pickle_file, reload)
-
-
 
 
 
