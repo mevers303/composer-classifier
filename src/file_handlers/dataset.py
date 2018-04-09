@@ -158,7 +158,7 @@ class VectorGetter:
 
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
-        y = np.array(self.y_onehot_encoder.transform(y), dtype=np.byte)
+        y = np.array(self.y_onehot_encoder.transform(y).todense(), dtype=np.byte)
 
 
 
@@ -197,7 +197,7 @@ class VectorGetter:
             progress_bar(complete, total)
 
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
-        y = np.array(self.y_onehot_encoder.transform(y), dtype=np.byte)
+        y = np.array(self.y_onehot_encoder.transform(y).todense(), dtype=np.byte)
         X = np.array(X, dtype=np.byte)
 
 
@@ -261,9 +261,9 @@ class VectorGetter:
         X_test = np.array(X_test, dtype=np.byte)
 
         y_train = self.y_label_encoder.transform(y_train).reshape(-1, 1)
-        y_train = np.array(self.y_onehot_encoder.transform(y_train), dtype=np.byte)
+        y_train = np.array(self.y_onehot_encoder.transform(y_train).todense(), dtype=np.byte)
         y_test = self.y_label_encoder.transform(y_test).reshape(-1, 1)
-        y_test = np.array(self.y_onehot_encoder.transform(y_test), dtype=np.byte)
+        y_test = np.array(self.y_onehot_encoder.transform(y_test).todense(), dtype=np.byte)
 
         if pickle_file:
             print("Saving dataset pickle...")
