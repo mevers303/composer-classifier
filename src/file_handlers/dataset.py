@@ -219,6 +219,9 @@ class VectorGetter:
         :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
         """
 
+        print("\nLoading MIDI files...")
+
+
         if pickle_file and not os.path.exists(pickle_file):
             reload = True
 
@@ -227,9 +230,32 @@ class VectorGetter:
                 return pickle.load(f)
 
 
-        X, y = self.get_all()
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
+        X_train = []
+        X_test = []
+        y_train = []
+        y_test = []
+
+        complete = 0
+        total = len(self.X_filenames)
+        progress_bar(complete, total)
+
+        for filename, composer in zip(self.X_train_filenames, self.y_train_filenames):
+            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_train.extend(X_file)
+            y_train.extend([composer] * len(X_file))
+
+            complete += 1
+            progress_bar(complete, total)
+
+        for filename, composer in zip(self.X_test_filenames, self.y_test_filenames):
+            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_test.extend(X_file)
+            y_test.extend([composer] * len(X_file))
+
+            complete += 1
+            progress_bar(complete, total)
+
 
 
         if pickle_file:

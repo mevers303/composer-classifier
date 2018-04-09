@@ -1,6 +1,6 @@
 # Mark Evers
 # Created: 3/30/2018
-# model.py
+# model_scratchpad.py
 # RNN classifier model
 
 import numpy as np
@@ -12,7 +12,8 @@ from sklearn.model_selection import cross_val_score
 
 
 from globals import *
-from dataset import VectorGetterText, VectorGetterNHot, VectorGetterNHotTimeSeries
+from file_handlers.dataset import VectorGetterText, VectorGetterNHot, VectorGetterNHotTimeSeries
+from midi_handlers.midi_file import MidiFileNHot
 
 dataset = VectorGetterNHotTimeSeries("midi/classical")
 logfile = "models/log.txt"
@@ -132,6 +133,8 @@ def kfold_eval():
     print("Result: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
     print(results)
 
+    return results
+
 
 
 
@@ -175,6 +178,33 @@ def get_model_accuracy(model):
             correct += 1
 
     return correct / total
+
+
+
+def predict_one(model, filename):
+
+    mid = MidiFileNHot(filename, dataset.meta_df)
+    X = mid.to_X()
+
+    y_pred = model.predict(X)
+    sum_probs = y_pred.sum(axis=1)
+
+    result = np.zeros(shape=(y_pred.shape[1]))
+    result[np.argmax(y_pred)] = 1
+
+    return result
+
+
+
+def test_text_model():
+
+    dataset = VectorGetterText("midi/classical")
+    model = create_model()
+
+    model = batch_fit_model(model)
+    accuracy = get_model_accuracy(model)
+
+    print("Accuracy:", accuracy)
 
 
 

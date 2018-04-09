@@ -47,16 +47,16 @@ MINIMUM_TIMESERIES_STEP = MINIMUM_NOTE_LENGTH
 MUSIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 KEY_SIGNATURES = [[ 0,  2,  4,  5 , 7,  9, 11],  # C
-                  [ 1,  3,  5,  6,  8, 10,  0],  # C#
+                  [ 1,  3,  5,  6,  8, 10,  0],  # Db
                   [ 2,  4,  6,  7,  9, 11,  1],  # D
-                  [ 3,  5,  7,  8, 10,  0,  2],  # D#
+                  [ 3,  5,  7,  8, 10,  0,  2],  # Eb
                   [ 4,  6,  8,  9, 11,  1,  3],  # E
                   [ 5,  7,  9, 10,  0,  2,  4],  # F
-                  [ 6,  8, 10, 11,  1,  3,  5],  # F#
+                  [ 6,  8, 10, 11,  1,  3,  5],  # Gb
                   [ 7,  9, 11,  0,  2,  4,  6],  # G
-                  [ 8, 10,  0,  1,  3,  5,  7],  # G#
+                  [ 8, 10,  0,  1,  3,  5,  7],  # Ab
                   [ 9, 11,  1,  2,  4,  6,  8],  # A
-                  [10,  0,  2,  3,  5,  7,  9],  # A#
+                  [10,  0,  2,  3,  5,  7,  9],  # Bb
                   [11,  1,  3,  4,  6,  8, 10]]  # B
 
 # create a list of all the possible not durations to use to bin message durations into later on
@@ -151,8 +151,12 @@ def get_key_sig(note_dist):
 
     return best_match
 
-
 def bin_note_duration(duration):
+    """
+    Rounds the duration to the closest value in DURATION_BINS
+    :param duration: This note's duration
+    :return: A new duration in ticks
+    """
 
     smallest_difference = MAXIMUM_NOTE_LENGTH
     best_match = MAXIMUM_NOTE_LENGTH
@@ -185,6 +189,7 @@ def progress_bar(done, total, resolution = 0, text=""):
     :param done: Number of items complete
     :param total: Total number if items
     :param resolution: How often to update the progress bar (in percentage).  0 will update each time
+    :param text: Text to display at the end.
     :return: None
     """
 
