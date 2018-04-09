@@ -14,7 +14,7 @@ from sklearn.model_selection import cross_val_score
 from globals import *
 from dataset import VectorGetterText, VectorGetterNHot, VectorGetterNHotTimeSeries
 
-dataset = VectorGetterNHotTimeSeries("midi/classical")
+dataset = VectorGetterNHot("midi/classical")
 logfile = "models/log.txt"
 
 # fix random seed for reproducibility
