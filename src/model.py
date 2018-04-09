@@ -125,10 +125,11 @@ def all_fit_model(model):
 def kfold_eval():
 
     X, y = dataset.get_all()
-    kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=777)
+    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=777)
 
     results = cross_val_score(KerasClassifier(build_fn=create_model, epochs=N_EPOCHS, batch_size=BATCH_SIZE), X, y, cv=kfold)
     print("Result: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
+    print(results)
 
 
 
