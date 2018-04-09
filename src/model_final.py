@@ -66,10 +66,10 @@ def save_to_disk(_model, filename):
 
 
 
-def fit_model(_dataset, _model):
+def fit_model(_dataset, _model, pickle_file="nhot_split.pkl"):
 
     logfile = "models/final.txt"
-    X_train, X_test, y_train, y_test = _dataset.get_all_split()
+    X_train, X_test, y_train, y_test = _dataset.get_all_split(pickle_file)
 
     # FIT THE _model
     print("Training model...")
@@ -143,6 +143,6 @@ if __name__ == "__main__":
 
     dataset = VectorGetterNHot("midi/classical")
     model = create_model(dataset)
-    model = fit_model(dataset, model)
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
     save_to_disk(model, "models/final")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
