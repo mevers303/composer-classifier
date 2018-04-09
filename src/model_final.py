@@ -68,7 +68,7 @@ def save_to_disk(_model, filename):
 
 def fit_model(_dataset, _model):
 
-    logfile = "models/log.txt"
+    logfile = "models/final.txt"
     X_train, X_test, y_train, y_test = _dataset.get_all_split()
 
     # FIT THE _model
@@ -143,4 +143,6 @@ if __name__ == "__main__":
 
     dataset = VectorGetterNHot("midi/classical")
     model = create_model(dataset)
+    model = fit_model(dataset, model)
+    save_to_disk(model, "models/final")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
