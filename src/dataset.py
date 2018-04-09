@@ -328,7 +328,7 @@ class VectorGetterNHot(VectorGetter):
 
     def get_all(self, pickle_file="n-hot_all.pkl", reload=False):
         pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all_split(pickle_file, reload)
+        return super().get_all(pickle_file, reload)
 
 
 
@@ -347,7 +347,7 @@ class VectorGetterNHotTimeSeries(VectorGetter):
 
     def get_all(self, pickle_file="n-hot-timeseries_all.pkl", reload=False):
         pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all_split(pickle_file, reload)
+        return super().get_all(pickle_file, reload)
 
 
 
