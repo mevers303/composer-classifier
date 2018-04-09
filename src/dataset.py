@@ -12,7 +12,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
 from globals import *
-from midi_handlers.midi_file import MidiFileText, MidiTrackText, MidiFileNHot
+from midi_handlers.midi_file import MidiFileText, MidiTrackText, MidiFileNHot, MidiFileNHotTimeSeries
 
 
 
@@ -169,14 +169,23 @@ class VectorGetter:
 
 
 
-    def get_all(self):
+    def get_all(self, pickle_file="", reload=True):
+
+        print("\nLoading MIDI files...")
+
+        if pickle_file and not os.path.exists(pickle_file):
+            reload = True
+
+        if not reload:
+            with open(pickle_file, "rb") as f:
+                return pickle.load(f)
+
 
         X = []
         y = []
 
         complete = 0
         total = len(self.X_filenames)
-        print("\nLoading MIDI files...")
         progress_bar(complete, total)
 
         for filename, composer in zip(self.X_filenames, self.y_filenames):
@@ -192,22 +201,40 @@ class VectorGetter:
         X = np.array(X, dtype=np.byte)
 
 
+
+        if pickle_file:
+            with open(pickle_file, "wb") as f:
+                pickle.dump((X, y), f)
+
+
         return X, y
 
 
 
 
-    def get_all_split(self):
+    def get_all_split(self, pickle_file="", reload=True):
         """
         Easy wrapper function to get all the docs and their labels
 
         :return: docs: list of docs, y: list of docs' labels, composers: list of composers, n_features: number of features
         """
 
+        if pickle_file and not os.path.exists(pickle_file):
+            reload = True
+
+        if not reload:
+            with open(pickle_file, "rb") as f:
+                return pickle.load(f)
+
+
         X, y = self.get_all()
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
 
+
+        if pickle_file:
+            with open(pickle_file, "wb") as f:
+                pickle.dump((X_train, X_test, y_train, y_test), f)
 
         return X_train, X_test, y_train, y_test
 
@@ -293,43 +320,34 @@ class VectorGetterNHot(VectorGetter):
         self.n_features = 128 + len(DURATION_BINS) + 4
 
 
-    def get_all_split(self, reload=False):
-    
-        pickle_file = os.path.join(self.base_dir, "n-hot_split.pkl")
-        if not os.path.exists(pickle_file):
-            reload = True
-    
-        if not reload:
-            with open(pickle_file, "rb") as f:
-                return pickle.load(f)
-    
-    
-        X_train, X_test, y_train, y_test = super().get_all_split()
-    
-        with open(pickle_file, "wb") as f:
-            pickle.dump((X_train, X_test, y_train, y_test), f)
-    
-        return X_train, X_test, y_train, y_test
+    def get_all_split(self, pickle_file="n-hot_split.pkl", reload=False):
+        pickle_file = os.path.join(self.base_dir, pickle_file)
+        return super().get_all_split(pickle_file, reload)
 
 
 
+    def get_all(self, pickle_file="n-hot_all.pkl", reload=False):
+        pickle_file = os.path.join(self.base_dir, pickle_file)
+        return super().get_all_split(pickle_file, reload)
 
-    def get_all(self, reload=False):
 
-        pickle_file = os.path.join(self.base_dir, "n-hot_all.pkl")
-        if not os.path.exists(pickle_file):
-            reload = True
 
-        if not reload:
-            with open(pickle_file, "rb") as f:
-                return pickle.load(f)
+class VectorGetterNHotTimeSeries(VectorGetter):
 
-        X, y = super().get_all()
+    def __init__(self, base_dir="midi"):
+        super().__init__(base_dir, MidiFileNHotTimeSeries)
+        self.n_features = 128 + len(DURATION_BINS) + 4
 
-        with open(pickle_file, "wb") as f:
-            pickle.dump((X, y), f)
 
-        return X, y
+    def get_all_split(self, pickle_file="n-hot-timeseries_split.pkl", reload=False):
+        pickle_file = os.path.join(self.base_dir, pickle_file)
+        return super().get_all_split(pickle_file, reload)
+
+
+
+    def get_all(self, pickle_file="n-hot-timeseries_all.pkl", reload=False):
+        pickle_file = os.path.join(self.base_dir, pickle_file)
+        return super().get_all_split(pickle_file, reload)
 
 
 

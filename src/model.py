@@ -49,7 +49,7 @@ def create_model():
     model.add(LSTM(222))
     model.add(Dropout(.111))
     model.add(Dense(units=dataset.n_composers, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
     print(model.summary())
 
     return model
