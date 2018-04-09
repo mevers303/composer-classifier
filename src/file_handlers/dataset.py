@@ -257,11 +257,15 @@ class VectorGetter:
             progress_bar(complete, total)
 
 
-        X_train = np.array(X_train, dtype=np.byte)
-        X_test = np.array(X_test, dtype=np.byte)
+        # get shuffled indexes
+        shuffled_i = np.arange(len(X_train))
+        shuffled_i = np.random.shuffle(shuffled_i)
 
+        X_train = np.array(X_train, dtype=np.byte)[shuffled_i]
         y_train = self.y_label_encoder.transform(y_train).reshape(-1, 1)
-        y_train = np.array(self.y_onehot_encoder.transform(y_train).todense(), dtype=np.byte)
+        y_train = np.array(self.y_onehot_encoder.transform(y_train).todense(), dtype=np.byte)[shuffled_i]
+
+        X_test = np.array(X_test, dtype=np.byte)
         y_test = self.y_label_encoder.transform(y_test).reshape(-1, 1)
         y_test = np.array(self.y_onehot_encoder.transform(y_test).todense(), dtype=np.byte)
 

@@ -5,6 +5,7 @@
 
 
 import flask
+import os
 import pickle
 from model_final import load_from_disk
 
@@ -14,15 +15,21 @@ app = flask.Flask(__name__)
 
 
 
-
+@app.route("/index.html", methods=['GET'])
 @app.route("/", methods=['GET'])
 def index():
     return flask.render_template("shell.html", content="index.html")
 
-@app.route("/submit", methods=['GET'])
-def submit():
-    return flask.render_template("submit.html")
-#
+@app.route('/favicon.ico')
+def favicon():
+    return flask.send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route("/tryit.html", methods=['GET'])
+def tryit():
+    return flask.render_template("shell.html", content="tryit.html")
+
+
 # @app.route("/predict", methods=['POST'])
 # def predict():
 #     text = flask.request.form["article_text"]
@@ -35,3 +42,4 @@ def submit():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
