@@ -81,18 +81,23 @@ class MidiFileBase:
                 track_result = np.array(track_result, dtype=np.byte)
 
             partitions = int(track_result.shape[0] / NUM_STEPS) + 1
-            # chunks = [track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS] for i in range(partitions)]  #  this is without overlap
-            chunks = []
+            X = []
             for i in range(partitions):
-                if i:
-                    #  take an overlapping chunk from the step before
-                    chunks.append(track_result[(i * NUM_STEPS) - (NUM_STEPS / 2):((i + 1) * NUM_STEPS) - (NUM_STEPS / 2)])
-                    chunks.append(track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS])
 
-            for chunk in chunks:
-                if chunk.shape[0] < NUM_STEPS:
-                    chunk = sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T
-                X.append(chunk)
+                if i:
+
+                    #  take an overlapping chunk from the step before
+                    pre_chunk = track_result[(i * NUM_STEPS) - int(NUM_STEPS / 2):((i + 1) * NUM_STEPS) - int(NUM_STEPS / 2)]
+                    if pre_chunk.shape[0] < NUM_STEPS:
+                        X.append(sequence.pad_sequences(pre_chunk.T, maxlen=NUM_STEPS, padding="post").T)
+                    else:
+                        X.append(pre_chunk)
+
+                    chunk = track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS]
+                    if chunk.shape[0] < NUM_STEPS:
+                        X.append(sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T)
+                    else:
+                        X.append(chunk)
 
         return X
 
