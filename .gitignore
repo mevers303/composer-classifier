@@ -1,4 +1,5 @@
 .idea/*
 raw_midi/*
-src/__pycache__/*
+*/__pycache__/*
+*/*/__pycache__/*
 *.pkl
