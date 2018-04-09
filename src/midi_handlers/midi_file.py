@@ -76,7 +76,7 @@ class MidiFileBase:
                 pass
 
             if type(track_result) == csr_matrix:
-                track_result = track_result.toarray(dtype=np.byte)
+                track_result = np.array(track_result, dtype=np.byte)
             elif type(track_result) != np.ndarray:
                 track_result = np.array(track_result, dtype=np.byte)
 

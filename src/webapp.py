@@ -17,7 +17,7 @@ app = flask.Flask(__name__)
 
 @app.route("/", methods=['GET'])
 def index():
-    return flask.render_template("shell.html")
+    return flask.render_template("shell.html", content="index.html")
 
 @app.route("/submit", methods=['GET'])
 def submit():
