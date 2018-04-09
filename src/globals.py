@@ -17,13 +17,13 @@ MAXIMUM_WORKS = 120
 
 ###### HYPER PARAMETERS
 # How many threads to use when parsing the MIDI archive?
-NUM_THREADS = 3
+MIDI_ARCHIVE_NUM_THREADS = 3
 # How many ticks per beat should each track be converted to?
 TICKS_PER_BEAT = 4096
 # The resolution of music notes
 MINIMUM_NOTE_LENGTH = TICKS_PER_BEAT / 32  # 128th notes
 # The longest note allowed
-MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8
+MAXIMUM_NOTE_LENGTH = TICKS_PER_BEAT * 8   # two whole notes
 # Look at the first x notes to train/classify.  MUST BE DIVISIBLE BY 2
 NUM_STEPS = 1024
 # NUM_STEPS = 64  # for n-hot sequence

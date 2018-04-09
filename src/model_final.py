@@ -6,11 +6,10 @@
 import numpy as np
 from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
-from sklearn.model_selection import KFold
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
-
+from sklearn.model_selection import KFold
 
 from globals import *
 from file_handlers.dataset import VectorGetterNHot

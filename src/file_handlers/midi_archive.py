@@ -107,7 +107,7 @@ class MidiArchive():
         :return: The pandas dataframe filled with metadata.
         """
 
-        chunk_size = int(self.midi_filenames_total / NUM_THREADS + 1)
+        chunk_size = int(self.midi_filenames_total / MIDI_ARCHIVE_NUM_THREADS + 1)
         chunkified_filenames = [self.midi_filenames[i:i + chunk_size] for i in
                                 range(0, len(self.midi_filenames), chunk_size)]
         chunkified_labels = [self.midi_filenames_labels[i:i + chunk_size] for i in
