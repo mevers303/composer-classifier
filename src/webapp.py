@@ -16,6 +16,7 @@ import numpy as np
 app = Flask(__name__)
 model = load_from_disk("models/final")
 dataset = VectorGetterNHot("midi/classical")
+upload_folder = "temp_midi_uploads"
 
 
 
@@ -63,15 +64,15 @@ def midi():
         if file and allowed_file(file.filename):
 
             filename = secure_filename(file.filename)
-            midifile_path = os.path.join("temp_midi_uploads", filename)
-            file.save(midifile_path)
+            temp_midifile_path = os.path.join(upload_folder, filename)
+            file.save(temp_midifile_path)
 
 
-            prediction, probs = predict_one_file(model, midifile_path)
+            prediction, probs = predict_one_file(model, temp_midifile_path)
             prediction = dataset.composers[prediction]
 
 
-
+            os.remove(temp_midifile_path)
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=dataset.composers, probs_i=np.argsort(probs))
 
 
