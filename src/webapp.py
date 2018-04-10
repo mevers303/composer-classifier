@@ -63,8 +63,11 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/composers.html')
+def composers():
+    return render_template("shell.html", content="composers.html")
 
 @app.route('/midi.html', methods=['GET', 'POST'])
 def midi():
