@@ -147,7 +147,7 @@ class VectorGetter:
 
         for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
 
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
@@ -193,7 +193,7 @@ class VectorGetter:
         progress_bar(complete, total)
 
         for filename, composer in zip(self.X_filenames, self.y_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
@@ -245,7 +245,7 @@ class VectorGetter:
         progress_bar(complete, total)
 
         for filename, composer in zip(self.X_train_filenames, self.y_train_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X_train.extend(X_file)
             y_train.extend([composer] * len(X_file))
 
@@ -253,7 +253,7 @@ class VectorGetter:
             progress_bar(complete, total)
 
         for filename, composer in zip(self.X_test_filenames, self.y_test_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X_test.extend(X_file)
             y_test.extend([composer] * len(X_file))
 
