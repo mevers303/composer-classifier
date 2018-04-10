@@ -4,23 +4,55 @@
 # Web application
 
 
-from flask import Flask, render_template, send_from_directory, request, flash, redirect
+from flask import Flask, render_template, send_from_directory, request, flash, g
 import os
 from werkzeug.utils import secure_filename
 from file_handlers.dataset import VectorGetterNHot
 import pickle
-from model_final import load_from_disk, predict_one_file
+from model_final import load_from_disk
 import numpy as np
+from globals import *
+from file_handlers.midi_archive import MidiArchive
+from midi_handlers.midi_file import MidiFileNHot
+
+from keras.models import Sequential, model_from_json
+from keras.layers import LSTM, Dense, Dropout
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.model_selection import KFold
 
 
 app = Flask(__name__)
-model = load_from_disk("models/final")
-dataset = VectorGetterNHot("midi/classical")
+composers = VectorGetterNHot("midi/classical").get_composers()
 upload_folder = "temp_midi_uploads"
+app_context = app.app_context()
+# app_context.g.model = load_from_disk("models/final_0")
 
 
 
 ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def predict_one_file(filename):
+
+    model = load_from_disk("models/final_0")
+    note_dist = MidiArchive.parse_midi_meta(filename)[14:]
+
+    mid = MidiFileNHot(filename, note_dist)
+    X = np.array(mid.to_X(), dtype=np.byte)
+
+    y_pred = model.predict(X)
+    sum_probs = y_pred.sum(axis=0)
+    normed_probs = sum_probs / sum_probs.sum()
+
+    prediction = composers[np.argmax(normed_probs)]
+
+    return prediction, normed_probs
 
 
 
@@ -33,11 +65,6 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.route('/midi.html', methods=['GET', 'POST'])
 def midi():
@@ -67,17 +94,16 @@ def midi():
             temp_midifile_path = os.path.join(upload_folder, filename)
             file.save(temp_midifile_path)
 
-
-            prediction, probs = predict_one_file(model, temp_midifile_path)
-            prediction = dataset.composers[prediction]
-
-
+            prediction, probs = predict_one_file(temp_midifile_path)
             os.remove(temp_midifile_path)
-            return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=dataset.composers, probs_i=np.argsort(probs))
+
+            return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=composers, probs_i=np.argsort(probs)[::-1])
 
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
+    # prediction, probs = predict_one_file("temp_midi_uploads/beatles-revolton.mid")
+    # pass

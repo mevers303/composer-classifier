@@ -1,21 +1,44 @@
 <div class="s-content__header col-full">
     <h1 class="s-content__header-title">
-        {{ filename }} is most like: {{ prediction }}
+        {{ prediction }} ({{ '{0:0.2f}'.format(probs[probs_i[0]] * 100) }}%)
     </h1>
+    <div class="s-content__media col-full">
+        <div class="s-content__post-thumb">
+            <img src="static/images/{{ prediction }}.jpg" style="max-width:2000px; max-height:500px" />
+        </div>
+    </div>
 </div> <!-- end s-content__header -->
 
-<div class="s-content__media col-full">
-    <div class="s-content__post-thumb">
-        <img src="images/{prediction}.jpg" />
-    </div>
+
+<div class="col-full s-content__main add-bottom">
+
+    <p>
+        <b>{{ filename }}</b> is most similar to {{ prediction }}.  Here is the complete list of the file's similarity to our
+        composers:
+    </p>
+
+    <h3>
+        Similarity to other composers:
+    </h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Composer</th>
+                <th>Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for i in probs_i %}
+            <tr>
+                <td>{{ composers[i] }}</td>
+                <td>{{ '{0:0.2f}'.format(probs[i] * 100) }}%</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
 </div>
-
-
-<ol>
-    {% for i in probs_i %}
-        <li>{{ composers[i] }}: {{ probs[i] }}</li>
-    {% endfor %}
-</ol>
 
 
 {% include "upload_form.html" %}
