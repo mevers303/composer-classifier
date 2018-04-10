@@ -181,17 +181,17 @@ def get_model_accuracy(model):
 
 if __name__ == "__main__":
 
-    # model = create_model()
-    #
-    # # model = load_model_from_disk()
-    # if type(dataset) == VectorGetterNHot:
-    #     model = all_fit_model(model)
-    #     save_model(model, "models/nhot_64_48_32_dropout")
-    # elif type(dataset) == VectorGetterText:
-    #     model = batch_fit_model(model)
-    #
-    # accuracy = get_model_accuracy(model)
-    #
-    # print("Accuracy:", accuracy)
+    model = create_model()
 
-    kfold_eval()
+    # model = load_model_from_disk()
+    if type(dataset) == VectorGetterNHot:
+        model = all_fit_model(model)
+        save_model(model, "models/final")
+    elif type(dataset) == VectorGetterText:
+        model = batch_fit_model(model)
+
+    accuracy = get_model_accuracy(model)
+
+    print("Accuracy:", accuracy)
+
+    # kfold_eval()
