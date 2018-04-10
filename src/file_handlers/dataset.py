@@ -71,8 +71,6 @@ class VectorGetter:
         :return: A list of composers
         """
 
-        # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
-
         if self.base_dir.startswith("midi/classical"):
             valid_composers = ["Bach", "Beethoven", "Chopin", "Debussy", "Giuliani", "Handel", "Hays", "Hewitt", "Mozart", "Paganini", "Scarlatti", "Schubert", "Sor", "Tchaikovsky", "Thomas", "Tucker", "Vivaldi", "Webster"]
         else:
