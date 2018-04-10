@@ -30,6 +30,53 @@ def create_model(_dataset):
     _model.add(Dropout(.555))
     _model.add(LSTM(units=444, return_sequences=True))
     _model.add(Dropout(.333))
+    _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
+    _model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
+    print(_model.summary())
+
+    return _model
+
+
+def create_model2(_dataset):
+
+    # CREATE THE _model
+    _model = Sequential()
+    _model.add(LSTM(units=444, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
+    _model.add(Dropout(.555))
+    _model.add(LSTM(units=333, return_sequences=True))
+    _model.add(Dropout(.333))
+    _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
+    _model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
+    print(_model.summary())
+
+    return _model
+
+
+
+def create_model3(_dataset):
+
+    # CREATE THE _model
+    _model = Sequential()
+    _model.add(LSTM(units=1024, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
+    _model.add(Dropout(.555))
+    _model.add(LSTM(units=512, return_sequences=True))
+    _model.add(Dropout(.333))
+    _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
+    _model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
+    print(_model.summary())
+
+    return _model
+
+
+
+def create_model4(_dataset):
+
+    # CREATE THE _model
+    _model = Sequential()
+    _model.add(LSTM(units=444, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
+    _model.add(Dropout(.555))
+    _model.add(LSTM(units=333, return_sequences=True))
+    _model.add(Dropout(.333))
     _model.add(LSTM(222))
     _model.add(Dropout(.111))
     _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
@@ -142,9 +189,25 @@ def eval_file_accuracy(_dataset, _model):
 
 if __name__ == "__main__":
 
-    dataset = VectorGetterNHot("midi/classical")
-    model = create_model(dataset)
     # model = load_from_disk("models/final")
+    dataset = VectorGetterNHot("midi/classical")
+
+    model = create_model(dataset)
     model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
-    save_to_disk(model, "models/final")
+    save_to_disk(model, "models/final_1")
+    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+
+    model = create_model2(dataset)
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    save_to_disk(model, "models/final_2")
+    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+
+    model = create_model3(dataset)
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    save_to_disk(model, "models/final_3")
+    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+
+    model = create_model4(dataset)
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    save_to_disk(model, "models/final_4")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
