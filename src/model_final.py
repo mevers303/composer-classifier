@@ -143,8 +143,8 @@ def eval_file_accuracy(_dataset, _model):
 if __name__ == "__main__":
 
     dataset = VectorGetterNHot("midi/classical")
-    # model = create_model(dataset)
-    model = load_from_disk("models/final")
-    # model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
-    # save_to_disk(model, "models/final")
+    model = create_model(dataset)
+    # model = load_from_disk("models/final")
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    save_to_disk(model, "models/final")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
