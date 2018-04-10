@@ -4,44 +4,81 @@
 # Web application
 
 
-import flask
+from flask import Flask, render_template, send_from_directory, request, flash, redirect
 import os
+from werkzeug.utils import secure_filename
+from file_handlers.dataset import VectorGetterNHot
 import pickle
-from model_final import load_from_disk
+from model_final import load_from_disk, predict_one_file
 
 
-app = flask.Flask(__name__)
-# model = load_from_disk("models/final")
+app = Flask(__name__)
+model = load_from_disk("models/final")
+dataset = VectorGetterNHot("midi/classical")
+
+
+
+ALLOWED_EXTENSIONS = {".mid", ".midi", ".MID", ".MIDI"}
 
 
 
 @app.route("/index.html", methods=['GET'])
 @app.route("/", methods=['GET'])
 def index():
-    return flask.render_template("shell.html", content="index.html")
+    return render_template("shell.html", content="index.html")
 
 @app.route('/favicon.ico')
 def favicon():
-    return flask.send_from_directory(os.path.join(app.root_path, 'static'),
+    return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route("/tryit.html", methods=['GET'])
-def tryit():
-    return flask.render_template("shell.html", content="tryit.html")
 
-@app.route("/midi.html", methods=['GET'])
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route("/midi.html", methods=['GET', 'POST'])
 def midi():
-    return flask.render_template("shell.html", content="midi.html")
+
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(secure_filename(f.filename))
+
+    return render_template("shell.html", content="midi.html")
 
 
-# @app.route("/predict", methods=['POST'])
-# def predict():
-#     text = flask.request.form["article_text"]
-#     prediction = model.predict_one(text)
-#
-#     return flask.render_template("predict.html", article_section=prediction)
-#
-#
+@app.route('/midi.html', methods=['GET', 'POST'])
+def upload_file():
+
+    if request.method == "GET":
+        return render_template("shell.html", content="upload_form.html")
+
+    if request.method == 'POST':
+
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+
+        file = request.files['file']
+
+        # submitted with empty filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        if file and allowed_file(file.filename):
+
+            filename = secure_filename(file.filename)
+            midifile_path = os.path.join("temp_midi_uploads", filename)
+            file.save(midifile_path)
+
+
+            prediction, probs = predict_one_file(dataset, model, midifile_path)
+            prediction = dataset.composers[prediction]
+
+            return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs)
+
 
 
 if __name__ == '__main__':

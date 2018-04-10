@@ -1,0 +1,21 @@
+<div class="s-content__header col-full">
+    <h1 class="s-content__header-title">
+        {{ filename }} is most like: {{ prediction }}
+    </h1>
+</div> <!-- end s-content__header -->
+
+<div class="s-content__media col-full">
+    <div class="s-content__post-thumb">
+        <img src="images/{prediction}.jpg" />
+    </div>
+</div>
+
+
+<ol>
+    {% for i in argsort(probs) %}
+        <li>{{ composers[i] }}: {{ probs[i] }}</li>
+    {% endfor %}
+</ol>
+
+
+{% include "upload_form.html" }

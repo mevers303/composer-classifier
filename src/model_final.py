@@ -111,18 +111,19 @@ def predict_one_file(_dataset, _model, filename):
 
     y_pred = _model.predict(X)
     sum_probs = y_pred.sum(axis=1)
+    normed_probs = sum_probs / sum_probs.sum()
 
     result = np.zeros(shape=(y_pred.shape[1]))
     result[np.argmax(sum_probs)] = 1
 
-    return result
+    return result, normed_probs
 
 
 
 def eval_file_accuracy(_dataset, _model):
 
     y = _dataset.y_test_filenames
-    y_pred = [predict_one_file(_dataset, _model, filename) for filename in _dataset.X_test_filenames]
+    y_pred = [predict_one_file(_dataset, _model, filename)[0] for filename in _dataset.X_test_filenames]
     y_labels = np.array([_dataset.composers(np.argmax(row)) for row in y])
     y_pred_labels = np.array([_dataset.composers(np.argmax(row)) for row in y_pred])
 
