@@ -77,7 +77,7 @@ class VectorGetter:
         composers_df.columns = ["works"]
         valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
         if self.base_dir.startswith("midi/classical"):
-            valid_composers.update(["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"])
+            valid_composers = list(set(valid_composers).update(["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]))
 
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
