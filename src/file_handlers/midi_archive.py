@@ -152,14 +152,16 @@ class MidiArchive():
         for file, composer in zip(filenames, labels):
             if self.stop_threads:
                 break
-            self.parse_midi_meta(file, composer)
+            self.save_midi_meta(file, composer)
 
         # with self.thread_lock:
         #     print("\nThread finished!")
 
 
 
-    def parse_midi_meta(self, file, composer):
+
+    @staticmethod
+    def parse_midi_meta(file, composer="unknown"):
         """
         Adds a MIDI file's metadata to the meta_df pandas dataframe.
 
@@ -177,62 +179,75 @@ class MidiArchive():
         last_key_change_time = 0
         last_key = None
 
+        mid = mido.MidiFile(file)
+
+        for msg in mid:
+            time_now += msg.time
+
+
+            if msg.type == "key_signature":
+                if msg.key == last_key:
+                    continue
+
+                # self.key_sigs.add(msg.key)
+                # if 0 < time_now - last_key_change_time < 5:
+                #     print("\nVery short key signature change ({}s) -> {}".format(time_now - last_key_change_time, mid.filename))
+
+                if not key_sig or not music_notes_before_key_change.sum():
+                    key_sig = msg.key
+                elif time_now - last_key_change_time != 0:  # if the time since the last key change is zero
+                    has_key_change = True
+
+                last_key_change_time = time_now
+                last_key = msg.key
+
+
+            elif msg.type == "time_signature":
+                # self.time_sigs.add("{}/{}/{}/{}".format(msg.numerator, msg.denominator, msg.notated_32nd_notes_per_beat, msg.clocks_per_click))
+                if not time_n:
+                    time_n = msg.numerator
+                    time_d = msg.denominator
+                    time_32nd = msg.notated_32nd_notes_per_beat
+                    time_clocks_per_click = msg.clocks_per_click
+
+
+            elif msg.type == "note_on":
+                if not msg.velocity:
+                    continue
+                if not first_note:
+                    first_note = midi_to_music(msg.note)[0]
+                    first_note_time = msg.time
+                if not has_key_change and msg.channel != 10:  # skip channel 10 (drums)
+                    # midi_notes_before_key_change[msg.note] += 1
+                    music_notes_before_key_change[msg.note % 12] += 1
+
+
+            elif msg.type == "note_off":
+                if not has_note_off:
+                    has_note_off = True
+
+
+
+        predicted_key_sig = MUSIC_NOTES[get_key_sig(music_notes_before_key_change)]
+        values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, predicted_key_sig, time_n,
+                  time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off,
+                  has_key_change]
+        values.extend(music_notes_before_key_change)
+        # values.extend(midi_notes_before_key_change)
+
+
+        return values
+
+
+
+
+    def save_midi_meta(self, file, composer):
+
+
         try:
-            mid = mido.MidiFile(file)
 
-            for msg in mid:
-                time_now += msg.time
+            values = self.parse_midi_meta(file, composer)
 
-
-                if msg.type == "key_signature":
-                    if msg.key == last_key:
-                        continue
-
-                    # self.key_sigs.add(msg.key)
-                    # if 0 < time_now - last_key_change_time < 5:
-                    #     print("\nVery short key signature change ({}s) -> {}".format(time_now - last_key_change_time, mid.filename))
-
-                    if not key_sig or not music_notes_before_key_change.sum():
-                        key_sig = msg.key
-                    elif time_now - last_key_change_time != 0:  # if the time since the last key change is zero
-                        has_key_change = True
-
-                    last_key_change_time = time_now
-                    last_key = msg.key
-
-
-                elif msg.type == "time_signature":
-                    # self.time_sigs.add("{}/{}/{}/{}".format(msg.numerator, msg.denominator, msg.notated_32nd_notes_per_beat, msg.clocks_per_click))
-                    if not time_n:
-                        time_n = msg.numerator
-                        time_d = msg.denominator
-                        time_32nd = msg.notated_32nd_notes_per_beat
-                        time_clocks_per_click = msg.clocks_per_click
-
-
-                elif msg.type == "note_on":
-                    if not msg.velocity:
-                        continue
-                    if not first_note:
-                        first_note = midi_to_music(msg.note)[0]
-                        first_note_time = msg.time
-                    if not has_key_change and msg.channel != 10:  # skip channel 10 (drums)
-                        # midi_notes_before_key_change[msg.note] += 1
-                        music_notes_before_key_change[msg.note % 12] += 1
-
-
-                elif msg.type == "note_off":
-                    if not has_note_off:
-                        has_note_off = True
-
-
-
-            predicted_key_sig = MUSIC_NOTES[get_key_sig(music_notes_before_key_change)]
-            values = [composer, mid.type, len(mid.tracks), mid.ticks_per_beat, key_sig, predicted_key_sig, time_n,
-                      time_d, time_32nd, time_clocks_per_click, first_note, first_note_time, has_note_off,
-                      has_key_change]
-            values.extend(music_notes_before_key_change)
-            # values.extend(midi_notes_before_key_change)
             self.meta_df.loc[file] = values
             self.midi_filenames_parsed += 1
 
@@ -241,7 +256,7 @@ class MidiArchive():
 
 
         except KeyboardInterrupt:
-            # skip the next except clause
+            # this is here to make it skip the next except clause
             raise KeyboardInterrupt
 
         except:

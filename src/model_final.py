@@ -14,6 +14,7 @@ from sklearn.model_selection import KFold
 from globals import *
 from file_handlers.dataset import VectorGetterNHot
 from midi_handlers.midi_file import MidiFileNHot
+from file_handlers.midi_archive import MidiArchive
 
 # fix random seed for reproducibility
 # np.random.seed(777)
@@ -104,17 +105,21 @@ def kfold_eval(_dataset):
 
 
 
-def predict_one_file(_dataset, _model, filename):
+def predict_one_file(_model, filename, _dataset=None):
 
-    mid = MidiFileNHot(filename, _dataset.meta_df)
+    if _dataset:
+        note_dist = _dataset.meta_df.loc[filename][MUSIC_NOTES].values
+    else:
+        note_dist = MidiArchive.parse_midi_meta(filename)[14:]
+
+    mid = MidiFileNHot(filename, note_dist)
     X = np.array(mid.to_X(), dtype=np.byte)
 
     y_pred = _model.predict(X)
     sum_probs = y_pred.sum(axis=0)
     normed_probs = sum_probs / sum_probs.sum()
 
-    result = np.zeros(shape=(y_pred.shape[1]))
-    result[np.argmax(sum_probs)] = 1
+    result = np.argmax(normed_probs)
 
     return result, normed_probs
 
@@ -123,12 +128,11 @@ def predict_one_file(_dataset, _model, filename):
 def eval_file_accuracy(_dataset, _model):
 
     y = _dataset.y_test_filenames
-    y_pred = [predict_one_file(_dataset, _model, filename)[0] for filename in _dataset.X_test_filenames]
-    y_labels = np.array([_dataset.composers(np.argmax(row)) for row in y])
-    y_pred_labels = np.array([_dataset.composers(np.argmax(row)) for row in y_pred])
+    y_pred = [predict_one_file(_model, filename, _dataset)[0] for filename in _dataset.X_test_filenames]
+    y_pred_labels = np.array([_dataset.composers[row] for row in y_pred])
 
-    accuracy = (y_labels == y_pred_labels).sum()
-    precision, recall, fscore, support = precision_recall_fscore_support(y_labels, y_pred_labels)
+    accuracy = (y == y_pred_labels).sum() / len(y)
+    precision, recall, fscore, support = precision_recall_fscore_support(y, y_pred_labels)
 
     print("\nModel Metrics:")
     print("Accuracy: ", accuracy)
@@ -142,9 +146,10 @@ def eval_file_accuracy(_dataset, _model):
 
 if __name__ == "__main__":
 
+    model = load_from_disk("models/final_0")
     dataset = VectorGetterNHot("midi/classical")
-    model = create_model(dataset)
-    # model = load_from_disk("models/final")
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
-    save_to_disk(model, "models/final")
+    # model = create_model(dataset)
+    # model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    # save_to_disk(model, "models/final")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    # predict_one_file(model, "midi/classical/Bach/bach_846.mid")

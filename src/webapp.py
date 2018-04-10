@@ -67,8 +67,10 @@ def midi():
             file.save(midifile_path)
 
 
-            prediction, probs = predict_one_file(dataset, model, midifile_path)
+            prediction, probs = predict_one_file(model, midifile_path)
             prediction = dataset.composers[prediction]
+
+
 
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=dataset.composers, probs_i=np.argsort(probs))
 
