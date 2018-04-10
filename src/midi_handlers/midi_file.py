@@ -94,11 +94,11 @@ class MidiFileBase:
                     else:
                         chunks.append(pre_chunk)
 
-                    chunk = track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS]
-                    if chunk.shape[0] < NUM_STEPS:
-                        chunks.append(sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T)
-                    else:
-                        chunks.append(chunk)
+                chunk = track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS]
+                if chunk.shape[0] < NUM_STEPS:
+                    chunks.append(sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T)
+                else:
+                    chunks.append(chunk)
 
             X.extend(chunks)
 
