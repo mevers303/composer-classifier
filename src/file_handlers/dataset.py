@@ -259,7 +259,7 @@ class VectorGetter:
 
         # get shuffled indexes
         shuffled_i = np.arange(len(X_train))
-        shuffled_i = np.random.shuffle(shuffled_i)
+        np.random.shuffle(shuffled_i)
 
         X_train = np.array(X_train, dtype=np.byte)[shuffled_i]
         y_train = self.y_label_encoder.transform(y_train).reshape(-1, 1)
