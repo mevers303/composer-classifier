@@ -82,7 +82,7 @@ class MidiFileBase:
 
 
             partitions = int(track_result.shape[0] / NUM_STEPS) + 1
-            X = []
+            chunks = []
             for i in range(partitions):
 
                 if i:
@@ -90,15 +90,17 @@ class MidiFileBase:
                     #  take an overlapping chunk from the step before
                     pre_chunk = track_result[(i * NUM_STEPS) - int(NUM_STEPS / 2):((i + 1) * NUM_STEPS) - int(NUM_STEPS / 2)]
                     if pre_chunk.shape[0] < NUM_STEPS:
-                        X.append(sequence.pad_sequences(pre_chunk.T, maxlen=NUM_STEPS, padding="post").T)
+                        chunks.append(sequence.pad_sequences(pre_chunk.T, maxlen=NUM_STEPS, padding="post").T)
                     else:
-                        X.append(pre_chunk)
+                        chunks.append(pre_chunk)
 
                     chunk = track_result[i * NUM_STEPS:(i + 1) * NUM_STEPS]
                     if chunk.shape[0] < NUM_STEPS:
-                        X.append(sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T)
+                        chunks.append(sequence.pad_sequences(chunk.T, maxlen=NUM_STEPS, padding="post").T)
                     else:
-                        X.append(chunk)
+                        chunks.append(chunk)
+
+            X.extend(chunks)
 
         return X
 

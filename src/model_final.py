@@ -107,10 +107,10 @@ def kfold_eval(_dataset):
 def predict_one_file(_dataset, _model, filename):
 
     mid = MidiFileNHot(filename, _dataset.meta_df)
-    X = mid.to_X()
+    X = np.array(mid.to_X(), dtype=np.byte)
 
     y_pred = _model.predict(X)
-    sum_probs = y_pred.sum(axis=1)
+    sum_probs = y_pred.sum(axis=0)
     normed_probs = sum_probs / sum_probs.sum()
 
     result = np.zeros(shape=(y_pred.shape[1]))
@@ -143,7 +143,8 @@ def eval_file_accuracy(_dataset, _model):
 if __name__ == "__main__":
 
     dataset = VectorGetterNHot("midi/classical")
-    model = create_model(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
-    save_to_disk(model, "models/final")
+    # model = create_model(dataset)
+    model = load_from_disk("models/final")
+    # model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    # save_to_disk(model, "models/final")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
