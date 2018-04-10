@@ -73,13 +73,12 @@ class VectorGetter:
 
         # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
 
-        composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
-        composers_df.columns = ["works"]
-        valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
         if self.base_dir.startswith("midi/classical"):
-            valid_composers = set(valid_composers)
-            valid_composers.update(["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"])
-            valid_composers = list(valid_composers)
+            valid_composers = ["Bach", "Beethoven", "Chopin", "Debussy", "Giuliani", "Handel", "Hays", "Hewitt", "Mozart", "Paganini", "Scarlatti", "Schubert", "Sor", "Tchaikovsky", "Thomas", "Tucker", "Vivaldi", "Webster"]
+        else:
+            composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
+            composers_df.columns = ["works"]
+            valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
 
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
