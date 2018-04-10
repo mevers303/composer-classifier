@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from file_handlers.dataset import VectorGetterNHot
 import pickle
 from model_final import load_from_disk, predict_one_file
+import numpy as np
 
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ dataset = VectorGetterNHot("midi/classical")
 
 
 
-ALLOWED_EXTENSIONS = {".mid", ".midi", ".MID", ".MIDI"}
+ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
 
 
 
@@ -36,18 +37,11 @@ def favicon():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route("/midi.html", methods=['GET', 'POST'])
-def midi():
-
-    if request.method == 'POST':
-        f = request.files['file']
-        f.save(secure_filename(f.filename))
-
-    return render_template("shell.html", content="midi.html")
-
 
 @app.route('/midi.html', methods=['GET', 'POST'])
-def upload_file():
+def midi():
+
+    print(request.method)
 
     if request.method == "GET":
         return render_template("shell.html", content="upload_form.html")
@@ -57,15 +51,14 @@ def upload_file():
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
-            return redirect(request.url)
-
+            return render_template("shell.html", content="upload_form.html")
 
         file = request.files['file']
 
         # submitted with empty filename
         if file.filename == '':
             flash('No selected file')
-            return redirect(request.url)
+            return render_template("shell.html", content="upload_form.html")
 
         if file and allowed_file(file.filename):
 
@@ -74,13 +67,16 @@ def upload_file():
             file.save(midifile_path)
 
 
-            prediction, probs = predict_one_file(dataset, model, midifile_path)
+            prediction, probs = predict_one_file(model, midifile_path)
             prediction = dataset.composers[prediction]
 
-            return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs)
+
+
+            return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=dataset.composers, probs_i=np.argsort(probs))
+
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
 

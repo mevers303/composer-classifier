@@ -16,10 +16,10 @@ from globals import *
 
 class MidiFileBase:
 
-    def __init__(self, filename, meta_df, track_converter):
+    def __init__(self, filename, note_dist, track_converter):
 
         self.filename = filename
-        self.meta_df = meta_df
+        self.note_dist = note_dist
 
         self.mid = mido.MidiFile(self.filename)
         self.key_sig_transpose = self.get_keysig_transpose_interval()
@@ -37,11 +37,8 @@ class MidiFileBase:
         :return: The interval to use to transpose this file to the correct key signature.
         """
 
-        row = self.meta_df.loc[self.filename]
-
         # get the key signature
-        note_dist = row[MUSIC_NOTES].values.astype(int)
-        key_sig = get_key_sig(note_dist)
+        key_sig = get_key_sig(self.note_dist)
 
         # first transpose based on key signature
         if key_sig < 6:
@@ -112,8 +109,8 @@ class MidiFileBase:
 class MidiFileText(MidiFileBase):
 
 
-    def __init__(self, filename, meta_df):
-        MidiFileBase.__init__(self, filename, meta_df, MidiTrackText)
+    def __init__(self, filename, note_dist):
+        MidiFileBase.__init__(self, filename, note_dist, MidiTrackText)
 
 
     def to_text(self):
@@ -140,15 +137,15 @@ class MidiFileText(MidiFileBase):
 
 class MidiFileNHot(MidiFileBase):
 
-    def __init__(self, filename, meta_df):
-        super().__init__(filename, meta_df, MidiTrackNHot)
+    def __init__(self, filename, note_dist):
+        super().__init__(filename, note_dist, MidiTrackNHot)
 
 
 
 class MidiFileNHotTimeSeries(MidiFileBase):
 
-    def __init__(self, filename, meta_df):
-        super().__init__(filename, meta_df, MidiTrackNHotTimeSeries)
+    def __init__(self, filename, note_dist):
+        super().__init__(filename, note_dist, MidiTrackNHotTimeSeries)
 
 
 
@@ -157,7 +154,7 @@ if __name__ == "__main__":
     file = "midi/classical/Arndt/Nola, Novelty piano solo.mid"
     df = pd.read_csv("midi/classical/meta.csv", index_col="filename")
     mid = mido.MidiFile(file)
-    t = MidiFileNHotTimeSeries(file, df)
+    t = MidiFileNHotTimeSeries(file, df.loc[file][MUSIC_NOTES])
     x = t.to_X()
     print(x)
     pass

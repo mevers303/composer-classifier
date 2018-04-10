@@ -12,10 +12,10 @@
 
 
 <ol>
-    {% for i in argsort(probs) %}
+    {% for i in probs_i %}
         <li>{{ composers[i] }}: {{ probs[i] }}</li>
     {% endfor %}
 </ol>
 
 
-{% include "upload_form.html" }
+{% include "upload_form.html" %}
