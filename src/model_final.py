@@ -186,8 +186,8 @@ def eval_file_accuracy(_dataset, _model):
 
     y = _dataset.y_test_filenames
     y_pred = [predict_one_file(_dataset, _model, filename)[0] for filename in _dataset.X_test_filenames]
-    y_labels = np.array([_dataset.composers(np.argmax(row)) for row in y])
-    y_pred_labels = np.array([_dataset.composers(np.argmax(row)) for row in y_pred])
+    y_labels = np.array([_dataset.composers[np.argmax(row)] for row in y])
+    y_pred_labels = np.array([_dataset.composers[np.argmax(row)] for row in y_pred])
 
     accuracy = (y_labels == y_pred_labels).sum()
     precision, recall, fscore, support = precision_recall_fscore_support(y_labels, y_pred_labels)
