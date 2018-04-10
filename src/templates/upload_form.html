@@ -2,32 +2,19 @@
 
     <h3 class="add-bottom">Upload a MIDI file (*.mid)</h3>
 
-    <form>
+    <p>
+        Upload a MIDI file from your computer, and we will try to tell you who composed it.  If the piece you upload
+        wasn't actually written by one of the composers we can recognize, it will tell you which composers it is most
+        similar to.  <b>Important:</b> please ensure that your MIDI file is a 'type 1' file.  If you are not sure, you
+        can use N-Audio's MIDI file converter.
+    </p>
+
+    <form action="eval_midi.html" method="POST" enctype="multipart/form-data">
         <div>
-            <label for="sampleInput">Your email</label>
-            <input class="full-width" type="email" placeholder="test@mailbox.com" id="sampleInput">
+            <label for="fileSelect">Upload a MIDI file:</label>
+            <input class="btn--pill" name="file" type="file" placeholder="*.mid" id="fileSelect">
+            <input class="btn--primary full-width" type="submit" value="-> Upload <-">
         </div>
-        <div>
-            <label for="sampleRecipientInput">Reason for contacting</label>
-            <div class="cl-custom-select">
-                <select class="full-width" id="sampleRecipientInput">
-                    <option value="Option 1">Questions</option>
-                    <option value="Option 2">Report</option>
-                    <option value="Option 3">Others</option>
-                </select>
-            </div>
-        </div>
-
-        <label for="exampleMessage">Message</label>
-        <textarea class="full-width" placeholder="Your message" id="exampleMessage"></textarea>
-
-        <label class="add-bottom">
-            <input type="checkbox">
-            <span class="label-text">Send a copy to yourself</span>
-        </label>
-
-        <input class="btn--primary full-width" type="submit" value="Submit">
-
     </form>
 
 </div>

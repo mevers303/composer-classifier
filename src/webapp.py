@@ -29,6 +29,10 @@ def favicon():
 def tryit():
     return flask.render_template("shell.html", content="tryit.html")
 
+@app.route("/midi.html", methods=['GET'])
+def midi():
+    return flask.render_template("shell.html", content="midi.html")
+
 
 # @app.route("/predict", methods=['POST'])
 # def predict():
