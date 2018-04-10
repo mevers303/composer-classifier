@@ -22,7 +22,7 @@ from midi_handlers.midi_file import MidiFileNHot
 
 
 
-def create_model(_dataset):
+def create_model0(_dataset):
 
     # CREATE THE _model
     _model = Sequential()
@@ -30,6 +30,21 @@ def create_model(_dataset):
     _model.add(Dropout(.555))
     _model.add(LSTM(units=444))
     _model.add(Dropout(.333))
+    _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
+    _model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
+    print(_model.summary())
+
+    return _model
+
+
+def create_model1(_dataset):
+
+    # CREATE THE _model
+    _model = Sequential()
+    _model.add(LSTM(units=666, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
+    _model.add(Dropout(.333))
+    _model.add(LSTM(units=444))
+    _model.add(Dropout(.222))
     _model.add(Dense(units=_dataset.n_composers, activation='softmax'))
     _model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy', 'accuracy'])
     print(_model.summary())
@@ -143,7 +158,7 @@ def kfold_eval(_dataset):
     X, y = _dataset.get_all()
     kfold = KFold(n_splits=10, shuffle=True)
 
-    results = cross_val_score(KerasClassifier(build_fn=create_model, epochs=N_EPOCHS, batch_size=BATCH_SIZE), X, y, cv=kfold)
+    results = cross_val_score(KerasClassifier(build_fn=create_model0, epochs=N_EPOCHS, batch_size=BATCH_SIZE), X, y, cv=kfold)
     print("Result: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
     print(results)
 
@@ -192,7 +207,12 @@ if __name__ == "__main__":
     # model = load_from_disk("models/final")
     dataset = VectorGetterNHot("midi/classical")
 
-    model = create_model(dataset)
+    model = create_model0(dataset)
+    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    save_to_disk(model, "models/final_0")
+    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+
+    model = create_model1(dataset)
     model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
     save_to_disk(model, "models/final_1")
     accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
