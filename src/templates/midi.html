@@ -24,6 +24,8 @@
     <table>
         <thead>
             <tr>
+                <th>&nbsp;</th>
+                <th>&nbsp;</th>
                 <th>Composer</th>
                 <th>Probability</th>
             </tr>
@@ -31,6 +33,8 @@
         <tbody>
         {% for i in probs_i %}
             <tr>
+                <td>{{ loop.index  }}</td>
+                <td><img src="static/images/thumbnails/{{ composers[i] }}.jpg" style="padding:0px; margin:0px"/></td>
                 <td>{{ composers[i] }}</td>
                 <td>{{ '{0:0.2f}'.format(probs[i] * 100) }}%</td>
             </tr>
