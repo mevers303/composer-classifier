@@ -4,7 +4,7 @@
     </h1>
 </div> <!-- end s-content__header -->
 
-<div class="col-full s-content__main">
+<div class="row">
 
     <p>
         Upload a MIDI file from your computer, and we will try to tell you who composed it.  If the piece you upload
@@ -17,7 +17,7 @@
         <div>
             <label for="fileSelect">Upload a MIDI file:</label>
             <input class="btn--primary" name="file" type="file" placeholder="*.mid" id="fileSelect">
-            <input class="btn--primary" type="submit" value="Upload">
+            <input class="btn--primary" type="submit" value="Upload" onclick="$('#analyzing').show(); $('#loader').show(); $('#preloader').fadeIn('fast');">
         </div>
     </form>
 

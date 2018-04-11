@@ -26,8 +26,6 @@ from sklearn.model_selection import KFold
 app = Flask(__name__)
 composers = VectorGetterNHot("midi/classical").get_composers()
 upload_folder = "temp_midi_uploads"
-app_context = app.app_context()
-# app_context.g.model = load_from_disk("models/final_0")
 
 
 
@@ -40,7 +38,7 @@ def allowed_file(filename):
 
 def predict_one_file(filename):
 
-    model = load_from_disk("models/final_0")
+    model = load_from_disk("models/final")
     note_dist = MidiArchive.parse_midi_meta(filename)[14:]
 
     mid = MidiFileNHot(filename, note_dist)
@@ -66,7 +64,7 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/composers.html')
-def composers():
+def show_composers():
     return render_template("shell.html", content="composers.html")
 
 @app.route('/midi.html', methods=['GET', 'POST'])
