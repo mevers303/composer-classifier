@@ -71,11 +71,12 @@ class VectorGetter:
         :return: A list of composers
         """
 
-        # valid_composers = ["Bach", "Mozart", "Beethoven", "Tchaikovsky", "Vivaldi", "Chopin", "Debussy", "Schubert", "Stravinsky"]
-
-        composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
-        composers_df.columns = ["works"]
-        valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
+        if self.base_dir.startswith("midi/classical"):
+            valid_composers = ["Bach", "Beethoven", "Chopin", "Debussy", "Giuliani", "Handel", "Hays", "Hewitt", "Mozart", "Paganini", "Scarlatti", "Schubert", "Sor", "Tchaikovsky", "Thomas", "Tucker", "Vivaldi", "Webster"]
+        else:
+            composers_df = pd.DataFrame(self.meta_df.groupby("composer").type.count())
+            composers_df.columns = ["works"]
+            valid_composers = composers_df[composers_df.works > MINIMUM_WORKS].index.values
 
         print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
 
@@ -143,7 +144,7 @@ class VectorGetter:
 
         for filename, composer in zip(X_chunk_filenames, y_chunk_filenames):
 
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
@@ -189,7 +190,7 @@ class VectorGetter:
         progress_bar(complete, total)
 
         for filename, composer in zip(self.X_filenames, self.y_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X.extend(X_file)
             y.extend([composer] * len(X_file))
 
@@ -241,7 +242,7 @@ class VectorGetter:
         progress_bar(complete, total)
 
         for filename, composer in zip(self.X_train_filenames, self.y_train_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X_train.extend(X_file)
             y_train.extend([composer] * len(X_file))
 
@@ -249,7 +250,7 @@ class VectorGetter:
             progress_bar(complete, total)
 
         for filename, composer in zip(self.X_test_filenames, self.y_test_filenames):
-            X_file = self.file_converter(filename, self.meta_df).to_X()
+            X_file = self.file_converter(filename, self.meta_df.loc[filename][MUSIC_NOTES]).to_X()
             X_test.extend(X_file)
             y_test.extend([composer] * len(X_file))
 

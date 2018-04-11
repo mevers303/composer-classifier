@@ -34,7 +34,7 @@ BATCH_FILES = 50
 # How many chunks of NUM_STEPS to load
 BATCH_SIZE = 66
 # How many epochs to train for?
-N_EPOCHS = 20
+N_EPOCHS = 15
 # The nodes in each hidden layer
 HIDDEN_LAYER_SIZE = 1024
 # Smallest step in a timeseries (in ticks)
