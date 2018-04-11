@@ -10,7 +10,7 @@ import pandas as pd
 import threading
 import numpy as np
 
-from globals import *
+from src.globals import *
 
 
 
@@ -53,7 +53,7 @@ class MidiArchive():
         """
         Returns a list of files in <self.base_dir> and their associated label in y.  Files must be in
         <dir>/<composer>/*.mid"
-        
+
         :return: None
         """""
 
@@ -273,7 +273,7 @@ def build_all_meta(dir="midi", delete_invalid_files=False):
     """
     Creates a csv file containing the metadata for a directory containing MIDI files organized into folders named after
     their composer.
-    
+
     :param dir: The path to the base directory of the archive.
     :param delete_invalid_files: Whether or not to delete invalid MIDI files from the system.
     :return: None
@@ -303,21 +303,21 @@ def build_all_meta(dir="midi", delete_invalid_files=False):
 
 
 if __name__ == "__main__":
-    
+
     from sys import argv
     delete_invalid_files = False
-    
+
     if len(argv) == 1:
         build_all_meta()
-        
+
     else:
-    
+
         for arg in argv[1:]:
-            
+
             if arg == "--delete-corrupt-files":
                 delete_invalid_files = True
                 continue
-                
+
             if os.path.isdir(arg):
                 build_all_meta(arg, delete_invalid_files)
             else:

@@ -17,7 +17,7 @@
         <div>
             <label for="fileSelect">Upload a MIDI file:</label>
             <input class="btn--primary" name="file" type="file" placeholder="*.mid" id="fileSelect">
-            <input class="btn--primary" type="submit" value="Upload">
+            <input class="btn--primary" type="submit" value="Upload" onclick="$('#analyzing').show(); $('#loader').show(); $('#preloader').fadeIn('fast');">
         </div>
     </form>
 
