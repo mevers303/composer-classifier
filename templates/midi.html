@@ -1,3 +1,6 @@
+{% set composers_full = ["Johann Sebastian Bach", "Ludwig van Beethoven", "Frédéric Chopin", "Claude Debussy", "Mauro Giuliani", "George Frideric Handel", "Philip Hayes", "John Hill Hewitt", "Wolfgang Amadeus Mozart", "Niccolò Paganini", "Domenico Scarlatti", "Franz Schubert", "Fernando Sor", "Pyotr Ilyich Tchaikovsky", "Ambroise Thomas", "Tui St. George Tucker", "Antonio Vivaldi", "Joseph Philbrick Webster"] %}
+{% set prediction_full_name = composers_full[probs_i[0]] %}
+
 <div class="s-content__header col-full">
     <h1 class="s-content__header-title">
         {{ prediction }} ({{ '{0:0.2f}'.format(probs[probs_i[0]] * 100) }}%)
@@ -13,7 +16,7 @@
 <div class="col-full s-content__main add-bottom">
 
     <p>
-        <b>{{ filename }}</b> is most similar to {{ prediction }}.  Here is the complete list of the file's similarity to our
+        <b>{{ filename }}</b> is most similar to {{ prediction_full_name }}.  Here is the complete list of the file's similarity to our
         composers:
     </p>
 

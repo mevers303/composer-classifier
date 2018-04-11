@@ -25,6 +25,7 @@ from sklearn.model_selection import KFold
 
 app = Flask(__name__)
 composers = VectorGetterNHot("midi/classical").get_composers()
+print(composers)
 upload_folder = "temp_midi_uploads"
 
 
