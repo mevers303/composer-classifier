@@ -10,7 +10,8 @@ A piano can play only 88 possible notes and within any song, only a fraction of 
 ### Data Sources
 There is a data protocol and associated file format called the Musical Instrument Digital Interface (MIDI) that electronic musical instruments use to communicate with one another.  When sheet music is composed or transcribed by a musician on computer, the software (such as Sibelieus) are capable of exporting a MIDI file.  A quick google search for "MIDI file archive" returns numerous results.  Much of these archives are compiled from contributions from users who have done exactly that.
 
-Here are the sources of the MIDI files:
+Here are some good sources for the MIDI files:
+
 [Reddit Post](https://www.reddit.com/r/WeAreTheMusicMakers/comments/3ajwe4/the_largest_midi_collection_on_the_internet/)
 
 [ClassicalMidi.co.uk](https://www.classicalmidi.co.uk/page7.htm)
@@ -31,7 +32,7 @@ pip install mido
 ```
 The `mido` library is pivitol for this application.  It provides objects for reading and handling MIDI files, tracks, and messages.  Visit the [Mido documentation](https://mido.readthedocs.io/en/latest/midi_files.html) for more info.
 
-There are 3 feature extraction strategies we will be exploring.  Now we will demonstrate how the following example MIDI messages will be changed with each strategy:
+There are 3 feature extraction strategies we will be exploring.  Now we will demonstrate how the following example MIDI messages will be changed with each strategy.  Note that the `time` attribute is the number of ticks since the last message and not an absolute time:
 ```
 <note_on  channel=0 note=45 velocity=110 time=0>
 <note_off channel=0 note=45 velocity=0   time=256>
