@@ -210,30 +210,30 @@ if __name__ == "__main__":
 
     # model = load_from_disk("models/final")
     dataset = VectorGetterNHot("midi/classical")
+    X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl")
 
     model = create_model0(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=BATCH_SIZE)
     save_to_disk(model, "models/final_0")
-    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    eval_file_accuracy(dataset, model)
 
     model = create_model1(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=BATCH_SIZE)
     save_to_disk(model, "models/final_1")
-    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    eval_file_accuracy(dataset, model)
 
     model = create_model2(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=BATCH_SIZE)
     save_to_disk(model, "models/final_2")
-    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    eval_file_accuracy(dataset, model)
 
     model = create_model3(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=BATCH_SIZE)
     save_to_disk(model, "models/final_3")
-    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    eval_file_accuracy(dataset, model)
 
     model = create_model4(dataset)
-    model = fit_model(dataset, model, pickle_file="100-120_works_split.pkl")
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=BATCH_SIZE)
     save_to_disk(model, "models/final_4")
-
-    accuracy, precision, recall, fscore = eval_file_accuracy(dataset, model)
+    eval_file_accuracy(dataset, model)
     # predict_one_file(model, "midi/classical/Bach/bach_846.mid")
