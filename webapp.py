@@ -7,13 +7,13 @@
 from flask import Flask, render_template, send_from_directory, request, flash, g
 import os
 from werkzeug.utils import secure_filename
-from file_handlers.dataset import VectorGetterNHot
+from src.file_handlers.dataset import VectorGetterNHot
 import pickle
-from model_final import load_from_disk
+from src.model_final import load_from_disk
 import numpy as np
-from globals import *
-from file_handlers.midi_archive import MidiArchive
-from midi_handlers.midi_file import MidiFileNHot
+from src.globals import *
+from src.file_handlers.midi_archive import MidiArchive
+from src.midi_handlers.midi_file import MidiFileNHot
 
 from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
