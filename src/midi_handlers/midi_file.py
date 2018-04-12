@@ -9,8 +9,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from keras.preprocessing import sequence
 
-from src.midi_handlers.midi_track import MidiTrackText, MidiTrackNHot, MidiTrackNHotTimeSeries
-from src.globals import *
+from midi_handlers.midi_track import MidiTrackText, MidiTrackNHot, MidiTrackNHotTimeSeries
+from globals import *
 
 
 

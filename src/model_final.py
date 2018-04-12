@@ -12,6 +12,8 @@ from keras.utils import plot_model
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
+import pickle
+import os
 
 from globals import *
 from file_handlers.dataset import VectorGetterNHot
@@ -69,10 +71,10 @@ def save_to_disk(_model, filename):
 
 
 
-def fit_model(_dataset, _model, pickle_file="nhot_split.pkl"):
+def fit_model(_dataset, _model):
 
     logfile = "models/final.txt"
-    X_train, X_test, y_train, y_test = _dataset.get_all_split(pickle_file)
+    X_train, X_test, y_train, y_test = _dataset.get_all_split()
 
     # FIT THE _model
     print("Training model...")
@@ -134,7 +136,7 @@ def eval_file_accuracy(_dataset, _model):
     y_pred_labels = np.array([_dataset.composers[row] for row in y_pred])
 
     accuracy = (y == y_pred_labels).sum() / len(y)
-    precision, recall, fscore, support = precision_recall_fscore_support(y, y_pred_labels)
+    precision, recall, fscore, support = precision_recall_fscore_support(y, y_pred_labels, labels=_dataset.composers)
 
     print("\nModel Metrics:")
     print("Accuracy: ", accuracy)
@@ -160,24 +162,33 @@ class FileAccuracyCallback(Callback):
         accuracy, precision, recall, fscore = eval_file_accuracy(self.dataset, self.model)
         self.history.append((accuracy, precision, recall, fscore))
 
-        if accuracy > self.best_accuracy:
-            print("Saving new best accuracy (", accuracy, ")")
-            self.model.save_weights("models/final_{0:02d}-{1:.2f}.h5".format(epoch, accuracy))
-            self.best_accuracy = accuracy
+        # if accuracy > self.best_accuracy:
+        #     print("Saving new best accuracy (", accuracy, ")")
+        self.model.save_weights("models/final_{0:02d}-{1:.2f}.h5".format(epoch + 1, accuracy))
+        self.best_accuracy = accuracy
 
 
 
 def epoch_gridsearch():
 
-    dataset = VectorGetterNHot("midi/classical")
-    X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl", reload=True)
+    if os.path.exists("midi/classical/dataset.pkl"):
+        with open("midi/classical/dataset.pkl", "rb") as f:
+            dataset = pickle.load(f)
+
+    else:
+        dataset = VectorGetterNHot("midi/classical")
+        with open("midi/classical/dataset.pkl", "wb") as f:
+            pickle.dump(dataset, f)
+
+
+    X_train, X_test, y_train, y_test = dataset.get_all_split()
     file_accuracy = FileAccuracyCallback(dataset)
 
     model = create_model(dataset)
     with open("models/final.json", "w") as f:
         f.write(model.to_json())
 
-    model.fit(X_train, y_train, epochs=5, batch_size=BATCH_SIZE, callbacks=[file_accuracy])
+    model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, callbacks=[file_accuracy])
 
 
     i = 1
@@ -194,4 +205,5 @@ def epoch_gridsearch():
 
 if __name__ == "__main__":
 
-    pass
+    with open("models/final_metrics.pkl", "wb") as f:
+        pickle.dump(file_accuracy.history, f)

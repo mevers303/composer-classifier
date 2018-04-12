@@ -7,7 +7,7 @@ import os
 import shutil
 import string
 
-from src.globals import *
+from globals import *
 
 
 
