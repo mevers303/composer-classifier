@@ -194,7 +194,4 @@ def epoch_gridsearch():
 
 if __name__ == "__main__":
 
-    dataset = VectorGetterNHot("midi/classical")
-    model = create_model(dataset)
-
-    plot_model(model, to_file="models/final.png", show_shapes=True, show_layer_names=False)
+    pass
