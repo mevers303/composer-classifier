@@ -205,5 +205,4 @@ def epoch_gridsearch():
 
 if __name__ == "__main__":
 
-    with open("models/final_metrics.pkl", "wb") as f:
-        pickle.dump(file_accuracy.history, f)
+    epoch_gridsearch()
