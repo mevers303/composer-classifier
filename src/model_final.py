@@ -161,10 +161,10 @@ class FileAccuracyCallback(Callback):
         accuracy, precision, recall, fscore = eval_file_accuracy(self.dataset, self.model)
         self.history.append((accuracy, precision, recall, fscore))
 
-        if accuracy > self.best_accuracy:
-            print("Saving new best accuracy (", accuracy, ")")
-            self.model.save_weights("models/final_{0:02d}-{1:.2f}.h5".format(epoch, accuracy))
-            self.best_accuracy = accuracy
+        # if accuracy > self.best_accuracy:
+        #     print("Saving new best accuracy (", accuracy, ")")
+        self.model.save_weights("models/final_{0:02d}-{1:.2f}.h5".format(epoch + 1, accuracy))
+        self.best_accuracy = accuracy
 
 
 if __name__ == "__main__":
@@ -197,3 +197,6 @@ if __name__ == "__main__":
         print("Recall:   ", recall)
         print("F-Score:  ", fscore)
         i += 1
+
+    with open("models/final_metrics.pkl", "wb") as f:
+        pickle.dump(file_accuracy.history, f)
