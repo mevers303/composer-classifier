@@ -8,6 +8,7 @@ from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.callbacks import Callback
+from keras.utils import plot_model
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
@@ -28,7 +29,7 @@ def create_model(_dataset):
 
     # CREATE THE _model
     _model = Sequential()
-    _model.add(LSTM(units=666, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
+    _model.add(LSTM(units=665, input_shape=(NUM_STEPS, _dataset.n_features), return_sequences=True))
     _model.add(Dropout(.555))
     _model.add(LSTM(units=444, return_sequences=True))
     _model.add(Dropout(.333))
@@ -165,7 +166,8 @@ class FileAccuracyCallback(Callback):
             self.best_accuracy = accuracy
 
 
-if __name__ == "__main__":
+
+def epoch_gridsearch():
 
     dataset = VectorGetterNHot("midi/classical")
     X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl", reload=True)
@@ -186,3 +188,13 @@ if __name__ == "__main__":
         print("Recall:   ", recall)
         print("F-Score:  ", fscore)
         i += 1
+
+
+
+
+if __name__ == "__main__":
+
+    dataset = VectorGetterNHot("midi/classical")
+    model = create_model(dataset)
+
+    plot_model(model, to_file="models/final.png", show_shapes=True, show_layer_names=False)
