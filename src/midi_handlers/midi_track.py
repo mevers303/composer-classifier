@@ -6,8 +6,8 @@
 import numpy as np
 from collections import Counter
 
-from src.midi_handlers.midi_message import MidiMessage
-from src.globals import *
+from midi_handlers.midi_message import MidiMessage
+from globals import *
 
 
 

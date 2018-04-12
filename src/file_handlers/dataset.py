@@ -11,8 +11,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
-from src.globals import *
-from src.midi_handlers.midi_file import MidiFileText, MidiTrackText, MidiFileNHot, MidiFileNHotTimeSeries
+from globals import *
+from midi_handlers.midi_file import MidiFileText, MidiTrackText, MidiFileNHot, MidiFileNHotTimeSeries
 
 
 

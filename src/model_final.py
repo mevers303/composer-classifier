@@ -12,10 +12,10 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
 
-from src.globals import *
-from src.file_handlers.dataset import VectorGetterNHot
-from src.midi_handlers.midi_file import MidiFileNHot
-from src.file_handlers.midi_archive import MidiArchive
+from globals import *
+from file_handlers.dataset import VectorGetterNHot
+from midi_handlers.midi_file import MidiFileNHot
+from file_handlers.midi_archive import MidiArchive
 
 # fix random seed for reproducibility
 # np.random.seed(777)
