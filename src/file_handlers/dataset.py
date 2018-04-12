@@ -170,17 +170,9 @@ class VectorGetter:
 
 
 
-    def get_all(self, pickle_file="", reload=True):
+    def get_all(self):
 
         print("\nLoading MIDI files...")
-
-        if pickle_file and not os.path.exists(pickle_file):
-            reload = True
-
-        if not reload:
-            with open(pickle_file, "rb") as f:
-                return pickle.load(f)
-
 
         X = []
         y = []
@@ -200,20 +192,12 @@ class VectorGetter:
         y = self.y_label_encoder.transform(y).reshape(-1, 1)
         y = np.array(self.y_onehot_encoder.transform(y).todense(), dtype=np.byte)
         X = np.array(X, dtype=np.byte)
-
-
-
-        if pickle_file:
-            with open(pickle_file, "wb") as f:
-                pickle.dump((X, y), f)
-
-
         return X, y
 
 
 
 
-    def get_all_split(self, pickle_file="", reload=True):
+    def get_all_split(self):
         """
         Easy wrapper function to get all the docs and their labels
 
@@ -221,15 +205,6 @@ class VectorGetter:
         """
 
         print("\nLoading MIDI files...")
-
-
-        if pickle_file and not os.path.exists(pickle_file):
-            reload = True
-
-        if not reload:
-            with open(pickle_file, "rb") as f:
-                return pickle.load(f)
-
 
 
         X_train = []
@@ -269,12 +244,6 @@ class VectorGetter:
         X_test = np.array(X_test, dtype=np.byte)
         y_test = self.y_label_encoder.transform(y_test).reshape(-1, 1)
         y_test = np.array(self.y_onehot_encoder.transform(y_test).todense(), dtype=np.byte)
-
-        if pickle_file:
-            print("Saving dataset pickle...")
-            with open(pickle_file, "wb") as f:
-                pickle.dump((X_train, X_test, y_train, y_test), f)
-
         return X_train, X_test, y_train, y_test
 
 
@@ -357,17 +326,6 @@ class VectorGetterNHot(VectorGetter):
     def __init__(self, base_dir="midi"):
         super().__init__(base_dir, MidiFileNHot)
         self.n_features = 128 + len(DURATION_BINS) + 4
-
-
-    def get_all_split(self, pickle_file="n-hot_split.pkl", reload=False):
-        pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all_split(pickle_file, reload)
-
-
-
-    def get_all(self, pickle_file="n-hot_all.pkl", reload=False):
-        pickle_file = os.path.join(self.base_dir, pickle_file)
-        return super().get_all(pickle_file, reload)
 
 
 

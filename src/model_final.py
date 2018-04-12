@@ -11,6 +11,8 @@ from keras.callbacks import Callback
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
+import pickle
+import os
 
 from globals import *
 from file_handlers.dataset import VectorGetterNHot
@@ -68,10 +70,10 @@ def save_to_disk(_model, filename):
 
 
 
-def fit_model(_dataset, _model, pickle_file="nhot_split.pkl"):
+def fit_model(_dataset, _model):
 
     logfile = "models/final.txt"
-    X_train, X_test, y_train, y_test = _dataset.get_all_split(pickle_file)
+    X_train, X_test, y_train, y_test = _dataset.get_all_split()
 
     # FIT THE _model
     print("Training model...")
@@ -167,8 +169,17 @@ class FileAccuracyCallback(Callback):
 
 if __name__ == "__main__":
 
-    dataset = VectorGetterNHot("midi/classical")
-    X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl", reload=True)
+    if os.path.exists("midi/classical/dataset.pkl"):
+        with open("midi/classical/dataset.pkl", "rb") as f:
+            dataset = pickle.load(f)
+
+    else:
+        dataset = VectorGetterNHot("midi/classical")
+        with open("midi/classical/dataset.pkl", "wb") as f:
+            pickle.dump(dataset, f)
+
+
+    X_train, X_test, y_train, y_test = dataset.get_all_split()
     file_accuracy = FileAccuracyCallback(dataset)
 
     model = create_model(dataset)
