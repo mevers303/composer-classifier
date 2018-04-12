@@ -200,7 +200,8 @@ def epoch_gridsearch():
         print("F-Score:  ", fscore)
         i += 1
 
-
+    with open("models/final.json" "wb") as f:
+        pickle.dump(file_accuracy.history, f)
 
 
 if __name__ == "__main__":
