@@ -32,11 +32,9 @@ TEXT_MAXIMUM_FEATURES = 50000
 # How many midi files to load at once
 BATCH_FILES = 50
 # How many chunks of NUM_STEPS to load
-BATCH_SIZE = 66
+BATCH_SIZE = 64
 # How many epochs to train for?
-N_EPOCHS = 15
-# The nodes in each hidden layer
-HIDDEN_LAYER_SIZE = 1024
+N_EPOCHS = 20
 # Smallest step in a timeseries (in ticks)
 MINIMUM_TIMESERIES_STEP = MINIMUM_NOTE_LENGTH
 

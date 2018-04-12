@@ -7,6 +7,7 @@ import numpy as np
 from keras.models import Sequential, model_from_json
 from keras.layers import LSTM, Dense, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
+from keras.callbacks import Callback
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
@@ -144,13 +145,44 @@ def eval_file_accuracy(_dataset, _model):
     return accuracy, precision, recall, fscore
 
 
+
+class FileAccuracyCallback(Callback):
+
+    def __init__(self, _dataset):
+        super().__init__()
+        self.dataset = _dataset
+        self.history = []
+        self.best_accuracy = 0
+
+    def on_epoch_end(self, epoch, logs=None):
+
+        accuracy, precision, recall, fscore = eval_file_accuracy(self.dataset, self.model)
+        self.history.append((accuracy, precision, recall, fscore))
+
+        if accuracy > self.best_accuracy:
+            print("Saving new best accuracy (", accuracy, ")")
+            self.model.save_weights("models/final_{0:02d}-{1:.2f}.h5".format(epoch, accuracy))
+            self.best_accuracy = accuracy
+
+
 if __name__ == "__main__":
 
-    # model = load_from_disk("models/final")
     dataset = VectorGetterNHot("midi/classical")
-    X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl")
+    X_train, X_test, y_train, y_test = dataset.get_all_split("100-120_works_split.pkl", reload=True)
+    file_accuracy = FileAccuracyCallback(dataset)
 
     model = create_model(dataset)
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=BATCH_SIZE)
-    save_to_disk(model, "models/final_0")
-    eval_file_accuracy(dataset, model)
+    with open("models/final.json", "w") as f:
+        f.write(model.to_json())
+
+    model.fit(X_train, y_train, epochs=5, batch_size=BATCH_SIZE, callbacks=[file_accuracy])
+
+
+    i = 1
+    for accuracy, precision, recall, fscore in file_accuracy.history:
+        print("\nModel Metrics (epoch {}):".format(i))
+        print("Accuracy: ", accuracy)
+        print("Precision:", precision)
+        print("Recall:   ", recall)
+        print("F-Score:  ", fscore)
+        i += 1
