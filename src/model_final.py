@@ -186,7 +186,7 @@ if __name__ == "__main__":
     with open("models/final.json", "w") as f:
         f.write(model.to_json())
 
-    model.fit(X_train, y_train, epochs=5, batch_size=BATCH_SIZE, callbacks=[file_accuracy])
+    model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, callbacks=[file_accuracy])
 
 
     i = 1
