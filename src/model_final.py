@@ -135,7 +135,7 @@ def eval_file_accuracy(_dataset, _model):
     y_pred_labels = np.array([_dataset.composers[row] for row in y_pred])
 
     accuracy = (y == y_pred_labels).sum() / len(y)
-    precision, recall, fscore, support = precision_recall_fscore_support(y, y_pred_labels)
+    precision, recall, fscore, support = precision_recall_fscore_support(y, y_pred_labels, labels=dataset.composers)
 
     print("\nModel Metrics:")
     print("Accuracy: ", accuracy)
