@@ -42,9 +42,25 @@ def get_valid_composers(composers_df):
                        "Webster"]
 
     print("Found", len(valid_composers), "composers:", ", ".join(valid_composers))
-    print(composers_df[composers_df.index.isin(valid_composers)])
+    # print(composers_df[composers_df.index.isin(valid_composers)])
 
     return valid_composers
+
+
+def get_valid_composers_df():
+
+    df = get_df()
+    composers_df = get_composer_works(df)
+    valid_composers = get_valid_composers(composers_df)
+
+    df = composers_df[composers_df.index.isin(valid_composers)].sort_values(by="works", ascending=False)
+
+    for i in df.index:
+        if df.loc[i].works > 120:
+            df.loc[i].works = 120
+
+
+    return df
 
 
 def plot_balance(composers_df, valid_composers):
@@ -57,24 +73,39 @@ def plot_balance(composers_df, valid_composers):
 
 
     # df.plot.pie("works")
-    ax = df.plot(kind="bar", title="Class balance", width=.75)
+    ax = df.plot(kind="bar", width=.75)
     cmap = plt.get_cmap("nipy_spectral_r")
     for works, bar in zip(df.works, ax.get_children()[:18]):
         bar.set_color(cmap(works))
     plt.xticks(rotation=55)
     for tick in ax.xaxis.get_majorticklabels():
         tick.set_horizontalalignment("right")
-    plt.xlabel("Composer")
-    plt.ylabel("Number of works")
+        tick.set_fontsize(18)
+    for tick in ax.yaxis.get_majorticklabels():
+        tick.set_fontsize(18)
+    plt.title("Class balance", fontsize=32)
+    plt.xlabel("Composer", fontsize=22)
+    plt.ylabel("Number of works", fontsize=22)
     plt.tight_layout()
     plt.legend().remove()
     plt.show()
 
 
+def get_random_guess_prob():
+
+    df = get_valid_composers_df()
+
+    total = df.works.sum()
+    n = df.works.count()
+    prob = 0
+
+    for x in df.works.values:
+        prob += (x / total) * (1 / n)
+        print(prob)
+
+    return prob
+
 
 if __name__ == "__main__":
 
-    df = get_df()
-    composers_df = get_composer_works(df)
-    valid_composers = get_valid_composers(composers_df)
-    plot_balance(composers_df, valid_composers)
+    print(get_random_guess_prob())
