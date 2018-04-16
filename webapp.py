@@ -102,6 +102,9 @@ def midi():
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=composers, probs_i=np.argsort(probs)[::-1])
 
 
+        return render_template("shell.html", content="upload_form.html")
+
+
 
 
 if __name__ == '__main__':
