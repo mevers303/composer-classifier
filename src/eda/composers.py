@@ -108,4 +108,5 @@ def get_random_guess_prob():
 
 if __name__ == "__main__":
 
-    print(get_random_guess_prob())
+    df = get_df()
+    df = get_composer_works(df)

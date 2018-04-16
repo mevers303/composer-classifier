@@ -4,8 +4,13 @@
 # Web application
 
 
-from flask import Flask, render_template, send_from_directory, request, flash, g
 import os
+import sys
+sys.path.append(os.getcwd())
+sys.path.append("src")
+
+
+from flask import Flask, render_template, send_from_directory, request, flash, g
 from werkzeug.utils import secure_filename
 from src.file_handlers.dataset import VectorGetterNHot
 import pickle
@@ -21,7 +26,6 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import KFold
-
 
 app = Flask(__name__)
 composers = VectorGetterNHot("midi/classical").get_composers()
@@ -96,8 +100,12 @@ def midi():
             temp_midifile_path = os.path.join(upload_folder, filename)
             file.save(temp_midifile_path)
 
-            prediction, probs = predict_one_file(temp_midifile_path)
-            os.remove(temp_midifile_path)
+            try:
+                prediction, probs = predict_one_file(temp_midifile_path)
+            except:
+                return render_template("shell.html", content="corrupt.html")
+            finally:
+                os.remove(temp_midifile_path)
 
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=composers, probs_i=np.argsort(probs)[::-1])
 
@@ -106,6 +114,3 @@ def midi():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-    # prediction, probs = predict_one_file("temp_midi_uploads/beatles-revolton.mid")
-    # pass
