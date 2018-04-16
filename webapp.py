@@ -10,26 +10,17 @@ sys.path.append(os.getcwd())
 sys.path.append("src")
 
 
-from flask import Flask, render_template, send_from_directory, request, flash, g
+from flask import Flask, render_template, send_from_directory, request, flash
 from werkzeug.utils import secure_filename
 from src.file_handlers.dataset import VectorGetterNHot
-import pickle
 from src.model_final import load_from_disk
 import numpy as np
-from src.globals import *
 from src.file_handlers.midi_archive import MidiArchive
 from src.midi_handlers.midi_file import MidiFileNHot
 
-from keras.models import Sequential, model_from_json
-from keras.layers import LSTM, Dense, Dropout
-from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.model_selection import KFold
 
 app = Flask(__name__)
-composers = VectorGetterNHot("midi/classical").get_composers()
-print(composers)
+composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
 
@@ -113,4 +104,4 @@ def midi():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
