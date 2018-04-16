@@ -20,6 +20,7 @@ from src.midi_handlers.midi_file import MidiFileNHot
 
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
