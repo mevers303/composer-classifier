@@ -1,6 +1,6 @@
 <div class="s-content__header col-full">
     <h1 class="s-content__header-title">
-        Upload a MIDI file
+        Try it!  Upload a MIDI file
     </h1>
 </div> <!-- end s-content__header -->
 
@@ -9,8 +9,9 @@
     <p>
         Upload a MIDI file from your computer, and we will try to tell you who composed it.  If the piece you upload
         wasn't actually written by one of the composers we can recognize, it will tell you which composers it is most
-        similar to.  <b>Important:</b> please ensure that your MIDI file is a 'type 1' file.  If you are not sure, you
-        can use N-Audio's MIDI file converter.
+        similar to.  <b>Please note:</b> this website was designed for 'Type 1' MIDI files.  Results for 'Type 0' MIDI
+        files will be unpredictable.  If you are not sure what kind of MIDI file you have, you can use
+        <a href="https://github.com/naudio/NAudio/tree/master/MidiFileConverter">N-Audio's MIDI file converter</a>.
     </p>
 
     <form action="midi.html" method="POST" enctype="multipart/form-data">
@@ -20,5 +21,20 @@
             <input class="btn--primary" type="submit" value="Upload" onclick="$('#analyzing').show(); $('#loader').show(); $('#preloader').fadeIn('fast');">
         </div>
     </form>
+
+    <h3>Don't have any MIDI files?</h3>
+    <p>
+        There are many great resources on the web to download all sorts of MIDI files.  You can find many classical
+        pieces and almost every popular song from every other genre with a little bit of browsing.  Check out these
+        links to find a MIDI file to test out!
+    </p>
+    <ul>
+        <li><a href="https://www.classicalarchives.com/midi.html">Classical Archives</a></li>
+        <li><a href="https://www.midi.com.au/">Hit Trax</a></li>
+        <li><a href="http://www.midiworld.com/files/">MIDI World</a></li>
+        <li><a href="http://www.storth.com/music2006.htm">Rob's MIDI Library</a></li>
+        <li><a href="https://www.reddit.com/r/WeAreTheMusicMakers/comments/3ajwe4/the_largest_midi_collection_on_the_internet/">midi_man's Reddit Post</a></li>
+        <li><a href="https://www.vgmusic.com/">Video Game Music Archive</a></li>
+    </ul>
 
 </div>

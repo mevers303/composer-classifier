@@ -64,6 +64,10 @@ def favicon():
 def show_composers():
     return render_template("shell.html", content="composers.html")
 
+@app.route('/contact.html')
+def contact():
+    return render_template("shell.html", content="contact.html")
+
 @app.route('/midi.html', methods=['GET', 'POST'])
 def midi():
 
@@ -102,10 +106,10 @@ def midi():
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=composers, probs_i=np.argsort(probs)[::-1])
 
 
-        return render_template("shell.html", content="upload_form.html")
+        return render_template("shell.html", content="corrupt.html")
 
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
