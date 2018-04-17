@@ -6,11 +6,7 @@
 
         <p class="lead">
             <i>Who wrote that song?</i> is a Recurrent Neural Network (RNN) that has been trained to recognize the varying
-            musical styles of classical composers by analyzing their sheet music.  It was written in Python 3.6
-            using TensorFlow with Keras a wrapper.  This web app is a demonstration of its capabilities.  It can easily
-            be trained to recognize new artists (including ones outside of classical music) which I have plans for in the
-            near future, so check back here often!  If there are any artists you would like to see, contact me on GitHub
-            or LinkedIn (links in the top left or on the contact page.)
+            musical styles of classical composers by analyzing their sheet music.
         </p>
 
     </div>
@@ -25,11 +21,19 @@
         Yet somehow, composers are still able to express themselves with their own unique, recognizable style. Familiar
         listeners are even capable of recognizing their favorite composers upon hearing a new song for the first time.
         This means that there are common patterns inherent in every musician's work that we are able to pick out.
+    </p>
+    <p>
         <i>Who wrote that song?</i> uses a <i>long short term memory</i> RNN to mimic this ability.  LSTM RNNs are able
-        to analyze patterns in a sequence of data, in this case the sequence of notes in a MIDI file.  <i>Who wrote that song?</i>
-        has been trained to recognize 18 different composers and will display a list of probabilities that a song was
+        to analyze patterns in a sequence of data, in this case the sequence of notes in a MIDI file.  It was written in
+        Python 3.6 using TensorFlow with Keras a wrapper.  This web app is a demonstration of its capabilities.
+    </p>
+    <p>
+        <i>Who wrote that song?</i> has been trained to recognize 18 different composers and will display a list of probabilities that a song was
         written by one of the composers it recognizes.  If the song was not written by one of the 18 composers, you can
-        think of the probabilities as a similarity to that composer.
+        think of the probabilities as a similarity to that composer. It can easily be trained to recognize new artists
+        (including ones outside of classical music) which I have plans for in the near future, so check back here often!
+        If there are any artists you would like to see, contact me on GitHub or LinkedIn (links are in the top left or
+        on the contact page.)
     </p>
 
 </div>
