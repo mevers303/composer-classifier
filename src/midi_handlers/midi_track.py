@@ -117,7 +117,7 @@ class MidiTrack:
 
             # msg.time is the time since the last message.  So add this to time to get the current time since the track start
             # we haven't seen a note_on yet, it's just some meta message at the beginning.  we want to make the first note at time = 0
-            if self.time_now != None:
+            if not self.time_now is None:
                 self.time_now += int(msg.time * self.ticks_transformer)
 
             # get the instrument
@@ -130,7 +130,7 @@ class MidiTrack:
 
             if msg.type == 'note_on':
 
-                if self.time_now == None:
+                if self.time_now is None:
                     self.time_now = 0
 
                 # if the velocity is 0, that means it is a "note_off" message, close the note and move on

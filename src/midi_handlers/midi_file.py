@@ -65,13 +65,9 @@ class MidiFileBase:
             track_converter = self.track_converter(track, self.ticks_transformer, self.key_sig_transpose)
             track_result = track_converter.to_sequence()
 
-            try:
-                if track_result == None:
-                    continue
-            except ValueError:
-                # it's a numpy array and doesn't like being compared to None
-                pass
 
+            if track_result is None:
+                continue
             if type(track_result) == csr_matrix:
                 track_result = np.array(track_result.todense(), dtype=np.byte)
             elif type(track_result) != np.ndarray:
