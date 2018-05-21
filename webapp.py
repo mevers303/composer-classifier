@@ -25,6 +25,7 @@ composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
 model = load_from_disk("models/final")
+graph = model.get_default_graph
 
 
 ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
@@ -36,14 +37,17 @@ def allowed_file(filename):
 
 def predict_one_file(filename):
 
+    global graph
+
     # model = load_from_disk("models/final")
-    model._make_predict_function()
+    # model._make_predict_function()
     note_dist = MidiArchive.parse_midi_meta(filename)[14:]
 
     mid = MidiFileNHot(filename, note_dist)
     X = np.array(mid.to_X(), dtype=np.byte)
 
-    y_pred = model.predict(X)
+    with graph.as_default():
+        y_pred = model.predict(X)
     sum_probs = y_pred.sum(axis=0)
     normed_probs = sum_probs / sum_probs.sum()
 
