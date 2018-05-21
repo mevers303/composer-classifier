@@ -36,6 +36,7 @@ def allowed_file(filename):
 def predict_one_file(filename):
 
     model = load_from_disk("models/final")
+    model._make_predict_function()
     note_dist = MidiArchive.parse_midi_meta(filename)[14:]
 
     mid = MidiFileNHot(filename, note_dist)
