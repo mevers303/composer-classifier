@@ -24,6 +24,7 @@ app.secret_key = os.urandom(24)
 composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
+model = load_from_disk("models/final")
 
 
 ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
@@ -35,8 +36,8 @@ def allowed_file(filename):
 
 def predict_one_file(filename):
 
-    model = load_from_disk("models/final")
-    model._make_predict_function()
+    # model = load_from_disk("models/final")
+    # model._make_predict_function()
     note_dist = MidiArchive.parse_midi_meta(filename)[14:]
 
     mid = MidiFileNHot(filename, note_dist)
