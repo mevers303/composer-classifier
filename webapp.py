@@ -17,6 +17,7 @@ from src.model_final import load_from_disk
 import numpy as np
 from src.file_handlers.midi_archive import MidiArchive
 from src.midi_handlers.midi_file import MidiFileNHot
+import tensorflow as tf
 
 
 app = Flask(__name__)
@@ -25,7 +26,7 @@ composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
 model = load_from_disk("models/final")
-graph = model.get_default_graph
+graph = tf.get_default_graph()
 
 
 ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
