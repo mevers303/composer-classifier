@@ -40,8 +40,6 @@ def predict_one_file(filename):
 
     global graph
 
-    # model = load_from_disk("models/final")
-    # model._make_predict_function()
     note_dist = MidiArchive.parse_midi_meta(filename)[14:]
 
     mid = MidiFileNHot(filename, note_dist)
@@ -103,15 +101,12 @@ def midi():
             temp_midifile_path = os.path.join(upload_folder, filename)
             file.save(temp_midifile_path)
 
-            # try:
-            #     prediction, probs = predict_one_file(temp_midifile_path)
-            # except:
-            #     return render_template("shell.html", content="corrupt.html")
-            # finally:
-            #     os.remove(temp_midifile_path)
-
-            prediction, probs = predict_one_file(temp_midifile_path)
-            os.remove(temp_midifile_path)
+            try:
+                prediction, probs = predict_one_file(temp_midifile_path)
+            except:
+                return render_template("shell.html", content="corrupt.html")
+            finally:
+                os.remove(temp_midifile_path)
 
             return render_template("shell.html", content="midi.html", filename=filename, prediction=prediction, probs=probs, composers=composers, probs_i=np.argsort(probs)[::-1])
 
