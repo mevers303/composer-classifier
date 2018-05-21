@@ -25,6 +25,7 @@ composers = VectorGetterNHot("midi/classical").composers
 upload_folder = "temp_midi_uploads"
 
 model = load_from_disk("models/final")
+model._make_predict_function()
 
 
 ALLOWED_EXTENSIONS = {"mid", "midi", "MID", "MIDI"}
